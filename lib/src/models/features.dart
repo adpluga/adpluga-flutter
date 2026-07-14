@@ -10,8 +10,10 @@ class FeaturesView {
   bool flag(String key, {bool fallback = false}) => flags[key] ?? fallback;
 
   factory FeaturesView.fromJson(Map<String, Object?> json) {
-    final rawFlags = (json['flags'] as Map?)?.cast<Object?, Object?>() ?? const {};
-    final rawMin = (json['sdk_min_version'] as Map?)?.cast<Object?, Object?>() ?? const {};
+    final rawFlags =
+        (json['flags'] as Map?)?.cast<Object?, Object?>() ?? const {};
+    final rawMin =
+        (json['sdk_min_version'] as Map?)?.cast<Object?, Object?>() ?? const {};
     return FeaturesView(
       flags: <String, bool>{
         for (final e in rawFlags.entries)

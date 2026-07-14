@@ -24,7 +24,8 @@ export 'src/events.dart'
         UpgradeRequiredSdkEvent;
 export 'src/logger.dart' show LoggerSink, setLoggerEnabled, setLoggerSink;
 export 'src/models/features.dart' show FeaturesView;
-export 'src/models/serve_response.dart' show Ad, AdKind, AdSource, ServeResponse;
+export 'src/models/serve_response.dart'
+    show Ad, AdKind, AdSource, ServeResponse;
 export 'src/widgets/ad_pluga_banner.dart'
     show
         AdPlugaBanner,
@@ -33,7 +34,8 @@ export 'src/widgets/ad_pluga_banner.dart'
         AdPlugaImpressionHandler;
 export 'src/widgets/ad_pluga_html.dart' show AdPlugaHtml, HtmlAdClickHandler;
 export 'src/widgets/ad_pluga_interstitial.dart' show InterstitialAd;
-export 'src/widgets/ad_pluga_native.dart' show AdPlugaNative, AdPlugaNativeBuilder;
+export 'src/widgets/ad_pluga_native.dart'
+    show AdPlugaNative, AdPlugaNativeBuilder;
 export 'src/widgets/ad_pluga_rewarded.dart' show RewardedAd, RewardHandler;
 export 'src/widgets/ad_pluga_video.dart'
     show

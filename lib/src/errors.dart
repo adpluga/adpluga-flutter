@@ -21,8 +21,7 @@ class NetworkError extends AdPlugaError {
 }
 
 class UpgradeRequiredError extends AdPlugaError {
-  const UpgradeRequiredError(this.minVersion)
-      : super('SDK upgrade required');
+  const UpgradeRequiredError(this.minVersion) : super('SDK upgrade required');
   final String minVersion;
 }
 

@@ -96,7 +96,8 @@ class _InterstitialRoute extends PageRoute<void> {
   bool get barrierDismissible => false;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> a, Animation<double> b) {
+  Widget buildPage(
+      BuildContext context, Animation<double> a, Animation<double> b) {
     return _InterstitialSurface(
       response: response,
       onShown: onShown,

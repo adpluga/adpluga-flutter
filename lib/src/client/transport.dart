@@ -22,7 +22,8 @@ class Transport {
     required this.publisherKey,
     HttpClientFactory? clientFactory,
     math.Random? random,
-  })  : _clientFactory = clientFactory ?? (transportClientOverride ?? http.Client.new),
+  })  : _clientFactory =
+            clientFactory ?? (transportClientOverride ?? http.Client.new),
         _random = random ?? math.Random();
 
   final String endpoint;
@@ -56,7 +57,8 @@ class Transport {
     if (consentSignals != null && consentSignals.isNotEmpty) {
       params['consent'] = consentSignals.join(',');
     }
-    final uri = Uri.parse('$endpoint/v1/serve').replace(queryParameters: params);
+    final uri =
+        Uri.parse('$endpoint/v1/serve').replace(queryParameters: params);
 
     Object? lastError;
     for (var attempt = 0; attempt < kRetryMaxAttempts + 1; attempt++) {
@@ -105,7 +107,8 @@ class Transport {
     final headers = <String, String>{};
     if (etag != null && etag.isNotEmpty) headers[kHeaderIfNoneMatch] = etag;
     try {
-      final resp = await _http.get(uri, headers: headers).timeout(kServeTimeout);
+      final resp =
+          await _http.get(uri, headers: headers).timeout(kServeTimeout);
       if (resp.statusCode == 304) {
         return (view: null, etag: etag, notModified: true);
       }
@@ -184,7 +187,8 @@ class Transport {
   }
 
   Future<void> _backoff(int attempt) async {
-    final base = kRetryBaseBackoff.inMilliseconds * math.pow(2, attempt).toInt();
+    final base =
+        kRetryBaseBackoff.inMilliseconds * math.pow(2, attempt).toInt();
     final jitter = _random.nextInt(base);
     await Future<void>.delayed(Duration(milliseconds: base + jitter));
   }

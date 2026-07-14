@@ -22,7 +22,8 @@ class RewardedAd {
     String? format,
   }) async {
     final sdk = AdPluga.instance;
-    final resp = await sdk.serve(slotId: slotId, format: format ?? 'video_rewarded');
+    final resp =
+        await sdk.serve(slotId: slotId, format: format ?? 'video_rewarded');
     if (resp == null) throw const NetworkError('no fill');
     if (resp.ad.kind != AdKind.videoRewarded &&
         resp.ad.kind != AdKind.video &&
@@ -32,7 +33,8 @@ class RewardedAd {
     return RewardedAd._(response: resp, slotId: slotId);
   }
 
-  Future<void> show(BuildContext context, {required RewardHandler onReward}) async {
+  Future<void> show(BuildContext context,
+      {required RewardHandler onReward}) async {
     if (_shown) return;
     _shown = true;
     final sdk = AdPluga.maybeInstance;
@@ -94,7 +96,8 @@ class _RewardedRoute extends PageRoute<void> {
   bool get barrierDismissible => false;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> a, Animation<double> b) {
+  Widget buildPage(
+      BuildContext context, Animation<double> a, Animation<double> b) {
     return _RewardedSurface(
       response: response,
       onShown: onShown,

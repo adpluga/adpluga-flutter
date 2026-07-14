@@ -180,7 +180,8 @@ void main() {
     expect(ad.response.quartilePings!['complete'], contains('complete'));
   });
 
-  test('rewarded accepts video_rewarded format with skippable window', () async {
+  test('rewarded accepts video_rewarded format with skippable window',
+      () async {
     transport_seam.transportClientOverride = () => MockClient((req) async {
           if (req.url.path == '/v1/serve') {
             return http.Response(videoRewardedFixture, 200);

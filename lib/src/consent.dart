@@ -64,7 +64,8 @@ class ConsentState {
 typedef ConsentListener = void Function(ConsentState state);
 
 class ConsentStore {
-  ConsentStore([ConsentState? initial]) : _state = initial ?? const ConsentState();
+  ConsentStore([ConsentState? initial])
+      : _state = initial ?? const ConsentState();
 
   ConsentState _state;
   final Set<ConsentListener> _listeners = <ConsentListener>{};

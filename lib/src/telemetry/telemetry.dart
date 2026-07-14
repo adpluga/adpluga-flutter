@@ -5,7 +5,14 @@ import '../client/transport.dart';
 import '../constants.dart';
 import '../logger.dart';
 
-enum SdkEventType { init, serveRequest, impression, click, error, upgradeRequired }
+enum SdkEventType {
+  init,
+  serveRequest,
+  impression,
+  click,
+  error,
+  upgradeRequired
+}
 
 String _serializeEventType(SdkEventType e) {
   switch (e) {
@@ -49,7 +56,8 @@ class TelemetryBatcher {
     if (_disposed) return;
     if (value) {
       _timer?.cancel();
-      _timer = Timer.periodic(kTelemetryFlushInterval, (_) => unawaited(flush()));
+      _timer =
+          Timer.periodic(kTelemetryFlushInterval, (_) => unawaited(flush()));
     } else {
       _timer?.cancel();
       _timer = null;

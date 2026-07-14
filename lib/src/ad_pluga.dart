@@ -57,7 +57,8 @@ class AdPluga {
   final ConsentStore _consent;
   final FeaturesCache _features;
   final TelemetryBatcher _telemetry;
-  final StreamController<SdkEvent> _events = StreamController<SdkEvent>.broadcast();
+  final StreamController<SdkEvent> _events =
+      StreamController<SdkEvent>.broadcast();
 
   bool _upgradeBlocked = false;
   String _upgradeMinVersion = '';
@@ -77,7 +78,8 @@ class AdPluga {
   }) async {
     if (_instance != null) return _instance!;
     if (!_isValidKey(publisherKey)) {
-      throw const InvalidKeyError('publisherKey must start with pk_live_ or pk_test_');
+      throw const InvalidKeyError(
+          'publisherKey must start with pk_live_ or pk_test_');
     }
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final consentStore = ConsentStore(consent);

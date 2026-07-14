@@ -32,7 +32,8 @@ class AdPlugaLogger {
       s(level, message, error);
       return;
     }
-    developer.log('[adpluga] $message', level: _levelValue(level), error: error);
+    developer.log('[adpluga] $message',
+        level: _levelValue(level), error: error);
   }
 
   int _levelValue(String level) {

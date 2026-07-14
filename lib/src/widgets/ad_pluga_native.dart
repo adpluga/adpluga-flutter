@@ -6,7 +6,8 @@ import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_banner.dart';
 
-typedef AdPlugaNativeBuilder = Widget Function(BuildContext context, Ad ad, VoidCallback onClick);
+typedef AdPlugaNativeBuilder = Widget Function(
+    BuildContext context, Ad ad, VoidCallback onClick);
 
 class AdPlugaNative extends StatefulWidget {
   const AdPlugaNative({

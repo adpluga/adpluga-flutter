@@ -67,7 +67,8 @@ class VisibilityTracker {
       final size = box.size;
       if (size.isEmpty) return;
       final topLeft = box.localToGlobal(Offset.zero);
-      final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
+      final rect =
+          Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
       final visible = rect.intersect(view);
       final visibleArea = visible.isEmpty ? 0 : visible.width * visible.height;
       final totalArea = size.width * size.height;

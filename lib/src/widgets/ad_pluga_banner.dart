@@ -52,7 +52,8 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
   @override
   void didUpdateWidget(covariant AdPlugaBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.slotId != widget.slotId || oldWidget.format != widget.format) {
+    if (oldWidget.slotId != widget.slotId ||
+        oldWidget.format != widget.format) {
       _teardownVisibility();
       _response = null;
       _clickFired = false;
@@ -187,7 +188,9 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
       width: w0,
       height: h0,
       child: Semantics(
-        label: ad.sponsoredBy != null ? 'Sponsored by ${ad.sponsoredBy}' : 'Sponsored',
+        label: ad.sponsoredBy != null
+            ? 'Sponsored by ${ad.sponsoredBy}'
+            : 'Sponsored',
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: (ad.kind == AdKind.html || ad.kind == AdKind.video)

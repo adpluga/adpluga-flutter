@@ -36,9 +36,7 @@ class QuartileFirer {
 
   Future<void> _fire(String url) async {
     try {
-      await _client
-          .get(Uri.parse(url))
-          .timeout(const Duration(seconds: 3));
+      await _client.get(Uri.parse(url)).timeout(const Duration(seconds: 3));
     } catch (_) {}
   }
 }
