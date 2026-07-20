@@ -137,7 +137,10 @@ class Transport {
   }
 
   Future<void> trackViewable({required String token}) async {
-    await _postTrack('/v1/track/viewable', {'token': token, 'event': 'viewable'});
+    await _postTrack(
+      '/v1/track/viewable',
+      {'token': token, 'event': 'viewable'},
+    );
   }
 
   Future<void> _postTrack(String path, Map<String, Object?> body) async {
