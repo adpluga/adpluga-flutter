@@ -45,7 +45,10 @@ class RewardedAd {
       navigator.push<void>(
         _RewardedRoute(
           response: response,
-          onShown: () => sdk.fireImpression(response, slotId),
+          onShown: () {
+            sdk.fireImpression(response, slotId);
+            sdk.fireViewable(response, slotId);
+          },
           onClick: () => sdk.fireClick(response, slotId),
           onReward: () {
             final amount = response.ad.rewardAmount;

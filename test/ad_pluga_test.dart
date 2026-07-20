@@ -23,6 +23,41 @@ void main() {
     );
   });
 
+  test('fireViewable posts /v1/track/viewable with the served track token',
+      () async {
+    final trackCalls = <String>[];
+    final trackBodies = <String>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            return http.Response(displayFixture, 200);
+          }
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          if (req.url.path.startsWith('/v1/track')) {
+            trackCalls.add(req.url.path);
+            trackBodies.add(req.body);
+            return http.Response('', 204);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp, isNotNull);
+    ad.fireViewable(resp!, 'slot_x');
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(trackCalls, contains('/v1/track/viewable'));
+    final idx = trackCalls.indexOf('/v1/track/viewable');
+    final body = jsonDecode(trackBodies[idx]) as Map<String, Object?>;
+    expect(body['token'], resp.trackToken);
+    expect(body['event'], 'viewable');
+  });
+
   test('serve returns response for pk_test_* key', () async {
     final serveCalls = <String>[];
     transport_seam.transportClientOverride = () => MockClient((req) async {

@@ -4,6 +4,14 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-07
+
+### Added
+- IAB viewability dispatch: `AdPluga.fireViewable(resp, slotId)` posts
+  `/v1/track/viewable` with the served track token. Banner, native,
+  interstitial and rewarded widgets fire it from the same viewability
+  callback that already recorded the impression.
+
 ## [0.2.0] — 2025-11
 
 ### Added

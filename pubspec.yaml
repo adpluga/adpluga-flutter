@@ -1,6 +1,6 @@
 name: adpluga_flutter
 description: AdPluga Flutter SDK — banner, native, interstitial and rewarded ads served by the AdPluga edge.
-version: 0.2.0
+version: 0.3.0
 homepage: https://github.com/adpluga/adpluga-flutter
 repository: https://github.com/adpluga/adpluga-flutter
 issue_tracker: https://github.com/adpluga/adpluga-flutter/issues

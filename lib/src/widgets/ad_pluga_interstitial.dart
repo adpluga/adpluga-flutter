@@ -51,7 +51,10 @@ class InterstitialAd {
       navigator.push<void>(
         _InterstitialRoute(
           response: response,
-          onShown: () => sdk.fireImpression(response, slotId),
+          onShown: () {
+            sdk.fireImpression(response, slotId);
+            sdk.fireViewable(response, slotId);
+          },
           onClick: () => sdk.fireClick(response, slotId),
           onDismiss: () {
             _dismissed = true;

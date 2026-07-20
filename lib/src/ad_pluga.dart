@@ -161,6 +161,10 @@ class AdPluga {
     _emit(ImpressionEvent(slotId: slotId, source: resp.source));
   }
 
+  void fireViewable(ServeResponse resp, String slotId) {
+    unawaited(_transport.trackViewable(token: resp.trackToken));
+  }
+
   void fireClick(ServeResponse resp, String slotId) {
     final url = resp.clickUrl;
     if (url != null && url.isNotEmpty) {

@@ -80,6 +80,7 @@ class _AdPlugaNativeState extends State<AdPlugaNative> {
         () {
           if (_disposed) return;
           ad.fireImpression(resp, widget.slotId);
+          ad.fireViewable(resp, widget.slotId);
           widget.onImpression?.call();
         },
       );

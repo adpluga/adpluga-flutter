@@ -131,9 +131,17 @@ class Transport {
     required String token,
     Map<String, Object?>? extra,
   }) async {
-    final uri = Uri.parse('$endpoint/v1/track');
     final body = <String, Object?>{'kind': kind, 'token': token};
     if (extra != null) body.addAll(extra);
+    await _postTrack('/v1/track', body);
+  }
+
+  Future<void> trackViewable({required String token}) async {
+    await _postTrack('/v1/track/viewable', {'token': token, 'event': 'viewable'});
+  }
+
+  Future<void> _postTrack(String path, Map<String, Object?> body) async {
+    final uri = Uri.parse('$endpoint$path');
     try {
       await _http
           .post(
