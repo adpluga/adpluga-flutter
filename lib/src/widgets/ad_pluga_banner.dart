@@ -166,6 +166,8 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
         }
         break;
       case AdKind.video:
+      case AdKind.videoRewarded:
+      case AdKind.audio:
         final videoUrl = ad.videoUrl ?? ad.assetUrl ?? '';
         if (videoUrl.isEmpty) {
           content = widget.placeholder ?? const SizedBox.shrink();
@@ -179,7 +181,6 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
         }
         break;
       case AdKind.native:
-      case AdKind.videoRewarded:
       case AdKind.unknown:
         content = widget.placeholder ?? const SizedBox.shrink();
         break;
@@ -194,7 +195,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
             : 'Sponsored',
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: (ad.kind == AdKind.html || ad.kind == AdKind.video)
+          onTap: (ad.kind == AdKind.html || ad.kind == AdKind.video || ad.kind == AdKind.videoRewarded || ad.kind == AdKind.audio)
               ? null
               : _handleTap,
           child: content,

@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class QuartileFirer {
-  QuartileFirer(this._pings, {http.Client? client})
-      : _client = client ?? http.Client();
+  QuartileFirer(this._pings, {String? endpoint, http.Client? client})
+      : _endpoint = endpoint,
+        _client = client ?? http.Client();
 
   final Map<String, String>? _pings;
+  final String? _endpoint;
   final http.Client _client;
   final Set<String> _fired = <String>{};
 
@@ -34,9 +36,17 @@ class QuartileFirer {
 
   void reset() => _fired.clear();
 
+  Uri _resolve(String url) {
+    final parsed = Uri.parse(url);
+    if (parsed.hasScheme) return parsed;
+    final base = _endpoint;
+    if (base == null || base.isEmpty) return parsed;
+    return Uri.parse(base).resolve(url);
+  }
+
   Future<void> _fire(String url) async {
     try {
-      await _client.get(Uri.parse(url)).timeout(const Duration(seconds: 3));
+      await _client.get(_resolve(url)).timeout(const Duration(seconds: 3));
     } catch (_) {}
   }
 }

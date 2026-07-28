@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-enum AdKind { image, html, native, template, video, videoRewarded, unknown }
+enum AdKind { image, html, native, template, video, videoRewarded, audio, unknown }
 
 AdKind adKindFromString(String value) {
   switch (value) {
@@ -16,6 +16,8 @@ AdKind adKindFromString(String value) {
       return AdKind.video;
     case 'video_rewarded':
       return AdKind.videoRewarded;
+    case 'audio':
+      return AdKind.audio;
     default:
       return AdKind.unknown;
   }

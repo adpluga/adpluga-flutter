@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import '../ad_pluga.dart';
 import '../tracking/quartile_firer.dart';
 
 typedef VideoAdClickHandler = void Function();
@@ -50,7 +51,8 @@ class _AdPlugaVideoState extends State<AdPlugaVideo> {
   @override
   void initState() {
     super.initState();
-    _quartiles = QuartileFirer(widget.quartilePings);
+    _quartiles = QuartileFirer(widget.quartilePings,
+        endpoint: AdPluga.maybeInstance?.config.endpoint);
     _setupController();
   }
 
@@ -62,7 +64,8 @@ class _AdPlugaVideoState extends State<AdPlugaVideo> {
       _completed = false;
       _clickFired = false;
       _initFailed = false;
-      _quartiles = QuartileFirer(widget.quartilePings);
+      _quartiles = QuartileFirer(widget.quartilePings,
+          endpoint: AdPluga.maybeInstance?.config.endpoint);
       _setupController();
     }
   }
