@@ -4,6 +4,18 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-07
+
+### Added
+- Audio and video_rewarded ad kinds render via `AdPlugaVideo` widget in
+  `AdPlugaBanner`, enabling autoplay for all video/audio formats.
+
+### Fixed
+- QuartileFirer now resolves relative ping URLs against the SDK endpoint,
+  fixing quartile tracking when the backend returns relative paths.
+- Fixed `AdPluga.maybeInstance?.endpoint` → `AdPluga.maybeInstance?.config.endpoint`
+  in `AdPlugaVideo` widget (2 occurrences).
+
 ## [0.3.0] — 2026-07
 
 ### Added

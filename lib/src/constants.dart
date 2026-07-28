@@ -1,5 +1,5 @@
 const String kSdkPlatform = 'flutter';
-const String kSdkVersion = '0.3.0';
+const String kSdkVersion = '0.4.0';
 
 const String kDefaultEndpoint = 'https://edge.adpluga.com';
 
