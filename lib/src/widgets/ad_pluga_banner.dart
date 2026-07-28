@@ -195,7 +195,10 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
             : 'Sponsored',
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: (ad.kind == AdKind.html || ad.kind == AdKind.video || ad.kind == AdKind.videoRewarded || ad.kind == AdKind.audio)
+          onTap: (ad.kind == AdKind.html ||
+                  ad.kind == AdKind.video ||
+                  ad.kind == AdKind.videoRewarded ||
+                  ad.kind == AdKind.audio)
               ? null
               : _handleTap,
           child: content,
