@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'test_badge.dart';
+
 typedef HtmlAdClickHandler = void Function();
 
 class AdPlugaHtml extends StatefulWidget {
@@ -14,6 +16,7 @@ class AdPlugaHtml extends StatefulWidget {
     this.baseUrl,
     this.onClick,
     this.backgroundColor,
+    this.isTest = false,
   });
 
   final String? html;
@@ -21,6 +24,7 @@ class AdPlugaHtml extends StatefulWidget {
   final String? baseUrl;
   final HtmlAdClickHandler? onClick;
   final Color? backgroundColor;
+  final bool isTest;
 
   @override
   State<AdPlugaHtml> createState() => _AdPlugaHtmlState();
@@ -82,6 +86,9 @@ class _AdPlugaHtmlState extends State<AdPlugaHtml> {
 
   @override
   Widget build(BuildContext context) {
-    return WebViewWidget(controller: _controller);
+    return withTestBadge(
+      WebViewWidget(controller: _controller),
+      isTest: widget.isTest,
+    );
   }
 }

@@ -82,6 +82,46 @@ void main() {
     expect(serveCalls, hasLength(1));
   });
 
+  test('serve parses test flag on the ad', () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            return http.Response(testModeFixture, 200);
+          }
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp, isNotNull);
+    expect(resp!.ad.isTest, isTrue);
+  });
+
+  test('serve defaults test flag to false when absent', () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            return http.Response(displayFixture, 200);
+          }
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp, isNotNull);
+    expect(resp!.ad.isTest, isFalse);
+  });
+
   test('426 upgrade_required blocks further serves', () async {
     var attempts = 0;
     transport_seam.transportClientOverride = () => MockClient((req) async {

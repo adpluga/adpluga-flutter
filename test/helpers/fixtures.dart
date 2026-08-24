@@ -72,6 +72,22 @@ const String videoRewardedFixture = '''{
   "source": "house"
 }''';
 
+const String testModeFixture = '''{
+  "ad": {
+    "id": "ad_test_1",
+    "type": "image",
+    "asset_url": "https://cdn.adpluga.example/creatives/ad.png",
+    "click_url": "https://landing.example",
+    "width": 320,
+    "height": 100,
+    "test": true
+  },
+  "impression_url": "https://edge.adpluga.example/v1/imp?t=test",
+  "click_url": "https://edge.adpluga.example/v1/click?t=test",
+  "track_token": "test_token",
+  "source": "house"
+}''';
+
 String featuresFixture({bool telemetry = true}) => jsonEncode({
       'flags': {'sdk_telemetry': telemetry},
       'sdk_min_version': {'flutter': ''},

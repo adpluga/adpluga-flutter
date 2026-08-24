@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 
 import '../ad_pluga.dart';
 import '../tracking/quartile_firer.dart';
+import 'test_badge.dart';
 
 typedef VideoAdClickHandler = void Function();
 typedef VideoAdProgressHandler = void Function(int positionMs, int durationMs);
@@ -24,6 +25,7 @@ class AdPlugaVideo extends StatefulWidget {
     this.muted = true,
     this.openClickExternally = true,
     this.backgroundColor = Colors.black,
+    this.isTest = false,
   });
 
   final String videoUrl;
@@ -36,6 +38,7 @@ class AdPlugaVideo extends StatefulWidget {
   final bool muted;
   final bool openClickExternally;
   final Color backgroundColor;
+  final bool isTest;
 
   @override
   State<AdPlugaVideo> createState() => _AdPlugaVideoState();
@@ -153,24 +156,24 @@ class _AdPlugaVideoState extends State<AdPlugaVideo> {
   @override
   Widget build(BuildContext context) {
     final c = _controller;
-    if (_initFailed) {
-      return ColoredBox(color: widget.backgroundColor);
-    }
-    if (c == null || !c.value.isInitialized) {
-      return ColoredBox(color: widget.backgroundColor);
-    }
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _handleTap,
-      child: ColoredBox(
-        color: widget.backgroundColor,
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: c.value.aspectRatio,
-            child: VideoPlayer(c),
+    final Widget child;
+    if (_initFailed || c == null || !c.value.isInitialized) {
+      child = ColoredBox(color: widget.backgroundColor);
+    } else {
+      child = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _handleTap,
+        child: ColoredBox(
+          color: widget.backgroundColor,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: c.value.aspectRatio,
+              child: VideoPlayer(c),
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+    return withTestBadge(child, isTest: widget.isTest);
   }
 }

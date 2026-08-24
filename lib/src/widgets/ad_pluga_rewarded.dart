@@ -6,6 +6,7 @@ import '../ad_pluga.dart';
 import '../errors.dart';
 import '../models/serve_response.dart';
 import 'ad_pluga_video.dart';
+import 'test_badge.dart';
 
 typedef RewardHandler = void Function(int amount, String currency);
 
@@ -243,19 +244,23 @@ class _RewardedSurfaceState extends State<_RewardedSurface> {
           onProgress: _onVideoProgress,
           onComplete: _onVideoComplete,
           openClickExternally: false,
+          isTest: ad.isTest,
         );
       }
     } else {
       final url = ad.assetUrl ?? ad.mainImageUrl ?? '';
       canClose = _secondsLeft == 0;
-      content = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _tap,
-        child: Center(
-          child: url.isEmpty
-              ? const SizedBox.shrink()
-              : Image.network(url, fit: BoxFit.contain),
+      content = withTestBadge(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _tap,
+          child: Center(
+            child: url.isEmpty
+                ? const SizedBox.shrink()
+                : Image.network(url, fit: BoxFit.contain),
+          ),
         ),
+        isTest: ad.isTest,
       );
     }
     return Material(

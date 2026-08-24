@@ -74,6 +74,7 @@ class Ad {
     this.skippableAfterMs = 0,
     this.rewardAmount = 0,
     this.rewardCurrency,
+    this.isTest = false,
   });
 
   final String id;
@@ -94,6 +95,7 @@ class Ad {
   final int skippableAfterMs;
   final int rewardAmount;
   final String? rewardCurrency;
+  final bool isTest;
 
   factory Ad.fromJson(Map<String, Object?> json) {
     return Ad(
@@ -115,6 +117,7 @@ class Ad {
       skippableAfterMs: (json['skippable_after_ms'] as num?)?.toInt() ?? 0,
       rewardAmount: (json['reward_amount'] as num?)?.toInt() ?? 0,
       rewardCurrency: json['reward_currency'] as String?,
+      isTest: (json['test'] as bool?) ?? false,
     );
   }
 }

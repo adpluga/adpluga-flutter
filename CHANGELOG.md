@@ -4,6 +4,15 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] — 2026-08
+
+### Added
+- Test-mode badge: creatives served by a `pk_test_` (sandbox) key now render a
+  small non-interactive "TEST" marker at the top-left of every ad surface
+  (banner, native, HTML, video, interstitial, rewarded). Driven by the new
+  `test` boolean on the serve response `ad` object (`Ad.isTest`). The badge is
+  wrapped in `IgnorePointer` so it never intercepts taps.
+
 ## [0.4.0] — 2026-07
 
 ### Added

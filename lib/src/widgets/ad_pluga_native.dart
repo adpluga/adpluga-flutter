@@ -5,6 +5,7 @@ import '../errors.dart';
 import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_banner.dart';
+import 'test_badge.dart';
 
 typedef AdPlugaNativeBuilder = Widget Function(
     BuildContext context, Ad ad, VoidCallback onClick);
@@ -111,6 +112,9 @@ class _AdPlugaNativeState extends State<AdPlugaNative> {
     if (resp == null) {
       return widget.placeholder ?? const SizedBox.shrink();
     }
-    return widget.builder(context, resp.ad, _handleTap);
+    return withTestBadge(
+      widget.builder(context, resp.ad, _handleTap),
+      isTest: resp.ad.isTest,
+    );
   }
 }

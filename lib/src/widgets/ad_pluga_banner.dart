@@ -6,6 +6,7 @@ import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
+import 'test_badge.dart';
 
 typedef AdPlugaErrorHandler = void Function(AdPlugaError error);
 typedef AdPlugaImpressionHandler = void Function();
@@ -143,11 +144,14 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
         if (url.isEmpty) {
           content = widget.placeholder ?? const SizedBox.shrink();
         } else {
-          content = Image.network(
-            url,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) =>
-                widget.placeholder ?? const SizedBox.shrink(),
+          content = withTestBadge(
+            Image.network(
+              url,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  widget.placeholder ?? const SizedBox.shrink(),
+            ),
+            isTest: ad.isTest,
           );
         }
         break;
@@ -162,6 +166,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
             html: hasInline ? inline : null,
             assetUrl: hasInline ? null : url,
             onClick: _handleTap,
+            isTest: ad.isTest,
           );
         }
         break;
@@ -177,6 +182,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
             clickThroughUrl: ad.clickUrl,
             quartilePings: resp.quartilePings,
             onClick: _handleTap,
+            isTest: ad.isTest,
           );
         }
         break;

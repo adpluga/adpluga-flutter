@@ -7,6 +7,7 @@ import '../errors.dart';
 import '../models/serve_response.dart';
 import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
+import 'test_badge.dart';
 
 class InterstitialAd {
   InterstitialAd._({required this.response, required this.slotId});
@@ -165,6 +166,7 @@ class _InterstitialSurfaceState extends State<_InterstitialSurface> {
           html: hasInline ? inline : null,
           assetUrl: hasInline ? null : url,
           onClick: _tap,
+          isTest: ad.isTest,
         );
       }
     } else if (ad.kind == AdKind.video) {
@@ -177,18 +179,22 @@ class _InterstitialSurfaceState extends State<_InterstitialSurface> {
           clickThroughUrl: ad.clickUrl,
           quartilePings: widget.response.quartilePings,
           onClick: _tap,
+          isTest: ad.isTest,
         );
       }
     } else {
       final url = ad.assetUrl ?? ad.mainImageUrl ?? '';
-      adContent = GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _tap,
-        child: Center(
-          child: url.isEmpty
-              ? const SizedBox.shrink()
-              : Image.network(url, fit: BoxFit.contain),
+      adContent = withTestBadge(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _tap,
+          child: Center(
+            child: url.isEmpty
+                ? const SizedBox.shrink()
+                : Image.network(url, fit: BoxFit.contain),
+          ),
         ),
+        isTest: ad.isTest,
       );
     }
     return Material(
