@@ -60,6 +60,7 @@ class Ad {
     required this.kind,
     this.assetUrl,
     this.html,
+    this.billingUrl,
     this.clickUrl,
     this.width = 0,
     this.height = 0,
@@ -81,6 +82,7 @@ class Ad {
   final AdKind kind;
   final String? assetUrl;
   final String? html;
+  final String? billingUrl;
   final String? clickUrl;
   final int width;
   final int height;
@@ -103,6 +105,7 @@ class Ad {
       kind: adKindFromString((json['type'] as String?) ?? ''),
       assetUrl: json['asset_url'] as String?,
       html: json['html'] as String?,
+      billingUrl: json['billing_url'] as String?,
       clickUrl: json['click_url'] as String?,
       width: (json['width'] as num?)?.toInt() ?? 0,
       height: (json['height'] as num?)?.toInt() ?? 0,

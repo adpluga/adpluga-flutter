@@ -162,7 +162,16 @@ class AdPluga {
   }
 
   void fireViewable(ServeResponse resp, String slotId) {
-    unawaited(_transport.trackViewable(token: resp.trackToken));
+    // Mediation fills carry no AdPluga track token: the billable impression is
+    // reported to the bidder by firing its burl once. First-party fills report
+    // the viewable to /track/viewable instead.
+    final billingUrl = resp.ad.billingUrl;
+    if (billingUrl != null && billingUrl.isNotEmpty) {
+      unawaited(_transport.beacon(billingUrl));
+    }
+    if (resp.trackToken.isNotEmpty) {
+      unawaited(_transport.trackViewable(token: resp.trackToken));
+    }
   }
 
   void fireClick(ServeResponse resp, String slotId) {
