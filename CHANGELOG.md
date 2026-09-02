@@ -4,6 +4,22 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-09
+
+### Added
+- `AdPlugaCarousel` renders `type=carousel` decks in a `PageView`. The deck is
+  one advertiser and one auction: every card reports the same click and no card
+  triggers another serve, so swiping costs no decisions and no extra impression.
+- `Slide` model and `Ad.slides`, parsed in the order the advertiser arranged;
+  a slide without a creative is dropped rather than drawn blank.
+
+### Changed
+- A scheduled rotation now backs off while the reader is swiping the deck and
+  resumes one full cadence after the last swipe.
+- A slot cadence below the client floor is raised to it instead of being
+  ignored, so a slot set to 15s rotates every 15s on a `pk_test_` key and every
+  30s on a live one — it never stops rotating.
+
 ## [0.5.1] — 2026-09
 
 ### Fixed
