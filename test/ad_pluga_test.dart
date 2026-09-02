@@ -189,6 +189,51 @@ void main() {
     expect(params[1]['non_personalized'], 'true');
   });
 
+  test('serve sends the install id as u when personalised', () async {
+    final params = <Map<String, String>>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            params.add(Map<String, String>.from(req.url.queryParameters));
+            return http.Response(displayFixture, 200);
+          }
+          return http.Response(featuresFixture(), 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    await ad.serve(slotId: 'slot_x');
+    await ad.serve(slotId: 'slot_x');
+
+    // The backend keys frequency capping and first-party audiences on `u`;
+    // without it both gates are skipped entirely.
+    expect(params[0]['u'], isNotNull);
+    expect(params[0]['u'], isNotEmpty);
+    // Stable across serves so the daily cap actually accumulates.
+    expect(params[1]['u'], params[0]['u']);
+  });
+
+  test('serve omits the install id without personalisation consent', () async {
+    final params = <Map<String, String>>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            params.add(Map<String, String>.from(req.url.queryParameters));
+            return http.Response(displayFixture, 200);
+          }
+          return http.Response(featuresFixture(), 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    ad.setConsent(const ConsentState(gdpr: true, adPersonalization: false));
+    await ad.serve(slotId: 'slot_x');
+
+    expect(params[0].containsKey('u'), isFalse);
+  });
+
   test('serve parses the slot rotation cadence', () async {
     transport_seam.transportClientOverride = () => MockClient((req) async {
           if (req.url.path == '/v1/serve') {

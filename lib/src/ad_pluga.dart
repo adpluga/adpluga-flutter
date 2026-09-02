@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:meta/meta.dart';
 
@@ -55,6 +56,7 @@ class AdPluga {
   final AdPlugaConfig config;
   final Transport _transport;
   final ConsentStore _consent;
+  String? _installId;
   final FeaturesCache _features;
   final TelemetryBatcher _telemetry;
   final StreamController<SdkEvent> _events =
@@ -66,6 +68,26 @@ class AdPluga {
 
   Stream<SdkEvent> get events => _events.stream;
   ConsentState get consentState => _consent.state;
+
+  /// First-party install id used for frequency capping and first-party
+  /// audiences. Only released when the current consent state allows
+  /// personalisation; without it the request carries no user at all and the
+  /// server skips both gates. Held in memory for the process lifetime — pass
+  /// `userHash` explicitly to key the daily cap across app launches.
+  String? _resolvedUserId() {
+    if (!_consent.state.isPersonalized) return null;
+    return _installId ??= _randomId();
+  }
+
+  static String _randomId() {
+    final rnd = Random.secure();
+    const hex = '0123456789abcdef';
+    final buf = StringBuffer();
+    for (var i = 0; i < 32; i++) {
+      buf.write(hex[rnd.nextInt(16)]);
+    }
+    return buf.toString();
+  }
   FeaturesView get featuresValue => _features.value;
   bool get isUpgradeBlocked => _upgradeBlocked;
 
@@ -123,7 +145,7 @@ class AdPluga {
       final resp = await _transport.serve(
         slotId: slotId,
         format: format,
-        userHash: userHash,
+        userHash: userHash ?? _resolvedUserId(),
         nonPersonalized: !_consent.state.isPersonalized,
         refreshSeq: refreshSeq,
       );
