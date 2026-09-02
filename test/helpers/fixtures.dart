@@ -92,3 +92,21 @@ String featuresFixture({bool telemetry = true}) => jsonEncode({
       'flags': {'sdk_telemetry': telemetry},
       'sdk_min_version': {'flutter': ''},
     });
+
+/// Mirrors what /v1/serve actually emits: path-only tracking URLs. Native HTTP
+/// clients reject a relative URL, so this fixture is what guards the impression
+/// and click from being dropped before they leave the device.
+const String relativeTrackingFixture = '''{
+  "ad": {
+    "id": "ad_rel_1",
+    "type": "image",
+    "asset_url": "https://cdn.adpluga.example/creatives/ad.png",
+    "click_url": "https://landing.example",
+    "width": 320,
+    "height": 100
+  },
+  "impression_url": "/v1/imp?t=abc",
+  "click_url": "/v1/click?t=xyz",
+  "track_token": "eyJhbGciOi",
+  "source": "pool"
+}''';

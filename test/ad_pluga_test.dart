@@ -468,4 +468,68 @@ void main() {
     await tester.pumpAndSettle();
     expect(interactions, 1);
   });
+
+  test('a path-only impression url is dialled against the endpoint', () async {
+    final beaconPaths = <String>[];
+    final beaconHosts = <String>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            return http.Response(relativeTrackingFixture, 200);
+          }
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          if (req.method == 'GET' &&
+              (req.url.path == '/v1/imp' || req.url.path == '/v1/click')) {
+            beaconPaths.add(req.url.path);
+            beaconHosts.add(req.url.host);
+            return http.Response('', 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp, isNotNull);
+    ad.fireImpression(resp!, 'slot_x');
+    ad.fireClick(resp, 'slot_x');
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(beaconPaths, containsAll(<String>['/v1/imp', '/v1/click']));
+    for (final host in beaconHosts) {
+      expect(host, isNotEmpty, reason: 'a relative beacon never leaves the device');
+    }
+  });
+
+  test('conversion posts the wire field names, not the SDK argument names',
+      () async {
+    final bodies = <String>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          if (req.url.path == '/v1/track') {
+            bodies.add(req.body);
+            return http.Response('', 204);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    await ad.conversion(token: 'tok', convType: 'purchase', valueCents: 1250);
+
+    expect(bodies, hasLength(1));
+    final body = jsonDecode(bodies.first) as Map<String, Object?>;
+    // event, not kind: the API defaults a missing event to impression, which
+    // would bill a conversion as an impression.
+    expect(body['event'], 'conversion');
+    expect(body['conv_type'], 'purchase');
+    expect(body['value_cents'], 1250);
+  });
 }

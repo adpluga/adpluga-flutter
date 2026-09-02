@@ -129,11 +129,11 @@ class Transport {
   }
 
   Future<void> track({
-    required String kind,
+    required String event,
     required String token,
     Map<String, Object?>? extra,
   }) async {
-    final body = <String, Object?>{'kind': kind, 'token': token};
+    final body = <String, Object?>{'event': event, 'token': token};
     if (extra != null) body.addAll(extra);
     await _postTrack('/v1/track', body);
   }
@@ -163,13 +163,22 @@ class Transport {
     }
   }
 
+  /// Fires a one-shot tracking GET. The serve contract may hand back a
+  /// path-only URL, which a native HTTP client rejects outright, so it is
+  /// resolved against the configured endpoint before dialling.
   Future<void> beacon(String url) async {
     if (url.isEmpty) return;
     try {
-      await _http.get(Uri.parse(url)).timeout(kTrackTimeout);
+      await _http.get(_absolute(url)).timeout(kTrackTimeout);
     } catch (e) {
       logger.warn('beacon failed', e);
     }
+  }
+
+  Uri _absolute(String url) {
+    final uri = Uri.parse(url);
+    if (uri.hasScheme) return uri;
+    return Uri.parse('$endpoint${url.startsWith('/') ? '' : '/'}$url');
   }
 
   Future<void> postTelemetry(Map<String, Object?> body) async {

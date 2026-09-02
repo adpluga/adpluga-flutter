@@ -179,7 +179,7 @@ class AdPluga {
     if (url != null && url.isNotEmpty) {
       unawaited(_transport.beacon(url));
     } else {
-      unawaited(_transport.track(kind: 'impression', token: resp.trackToken));
+      unawaited(_transport.track(event: 'impression', token: resp.trackToken));
     }
     _telemetry.record(SdkEventType.impression);
     _emit(ImpressionEvent(slotId: slotId, source: resp.source));
@@ -199,25 +199,37 @@ class AdPluga {
   }
 
   void fireClick(ServeResponse resp, String slotId) {
+    // Only click_url carries the click token; track_token is the impression
+    // one, so there is no honest fallback — reporting it would bill a click
+    // as an impression.
     final url = resp.clickUrl;
     if (url != null && url.isNotEmpty) {
       unawaited(_transport.beacon(url));
     } else {
-      unawaited(_transport.track(kind: 'click', token: resp.trackToken));
+      logger.warn('click dropped: serve response carried no click url');
     }
     _telemetry.record(SdkEventType.click);
     _emit(ClickEvent(slotId: slotId, source: resp.source));
   }
 
+  /// Reports a conversion against the token handed out with the ad.
+  /// [valueCents] and [convType] map onto the wire fields of the same name;
+  /// [type] and [value] are the previous names, kept working.
   Future<void> conversion({
     required String token,
-    String? type,
-    num? value,
+    String? convType,
+    int? valueCents,
+    String? currency,
+    @Deprecated('Use convType') String? type,
+    @Deprecated('Use valueCents') num? value,
   }) async {
     final extra = <String, Object?>{};
-    if (type != null) extra['type'] = type;
-    if (value != null) extra['value'] = value;
-    await _transport.track(kind: 'conversion', token: token, extra: extra);
+    final resolvedType = convType ?? type;
+    if (resolvedType != null) extra['conv_type'] = resolvedType;
+    final resolvedValue = valueCents ?? value?.round();
+    if (resolvedValue != null) extra['value_cents'] = resolvedValue;
+    if (currency != null) extra['currency'] = currency;
+    await _transport.track(event: 'conversion', token: token, extra: extra);
   }
 
   void setConsent(ConsentState next) {
