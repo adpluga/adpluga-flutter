@@ -125,9 +125,13 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
   void _scheduleRefresh() {
     _cancelRefresh();
     if (_disposed || !_foreground) return;
-    final secs = _response?.refreshAfterSeconds ?? 0;
-    if (secs < kMinRefreshSeconds) return;
-    _refreshTimer = Timer(Duration(seconds: secs), _onRefreshTick);
+    final resp = _response;
+    final secs = resp?.refreshAfterSeconds ?? 0;
+    if (resp == null || secs <= 0) return;
+    final floor =
+        resp.ad.isTest ? kMinRefreshSecondsTest : kMinRefreshSeconds;
+    _refreshTimer =
+        Timer(Duration(seconds: secs < floor ? floor : secs), _onRefreshTick);
   }
 
   void _cancelRefresh() {

@@ -8,10 +8,12 @@ const Duration kTrackTimeout = Duration(milliseconds: 5000);
 const int kRetryMaxAttempts = 2;
 const Duration kRetryBaseBackoff = Duration(milliseconds: 200);
 
-/// Rotation cadences below this floor are ignored even if the server sends
-/// one: it matches the 30s minimum the mobile ad industry enforces and keeps
-/// a misconfigured slot from burning the publisher's decision quota.
+/// A cadence below the floor is raised to it, never dropped, so a slot always
+/// keeps rotating. Live traffic honours the 30s minimum the mobile ad industry
+/// enforces; sandbox creatives may rotate every 15s so an integrator can watch
+/// it work without waiting.
 const int kMinRefreshSeconds = 30;
+const int kMinRefreshSecondsTest = 15;
 
 const double kViewabilityThreshold = 0.5;
 const Duration kViewabilityDwell = Duration(milliseconds: 1000);
