@@ -88,6 +88,7 @@ class AdPluga {
     }
     return buf.toString();
   }
+
   FeaturesView get featuresValue => _features.value;
   bool get isUpgradeBlocked => _upgradeBlocked;
 

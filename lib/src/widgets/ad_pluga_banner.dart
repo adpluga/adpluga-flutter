@@ -131,8 +131,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     final resp = _response;
     final secs = resp?.refreshAfterSeconds ?? 0;
     if (resp == null || secs <= 0) return;
-    final floor =
-        resp.ad.isTest ? kMinRefreshSecondsTest : kMinRefreshSeconds;
+    final floor = resp.ad.isTest ? kMinRefreshSecondsTest : kMinRefreshSeconds;
     _refreshTimer =
         Timer(Duration(seconds: secs < floor ? floor : secs), _onRefreshTick);
   }

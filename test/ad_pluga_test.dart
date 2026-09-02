@@ -500,7 +500,8 @@ void main() {
 
     expect(beaconPaths, containsAll(<String>['/v1/imp', '/v1/click']));
     for (final host in beaconHosts) {
-      expect(host, isNotEmpty, reason: 'a relative beacon never leaves the device');
+      expect(host, isNotEmpty,
+          reason: 'a relative beacon never leaves the device');
     }
   });
 
