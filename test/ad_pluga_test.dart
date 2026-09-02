@@ -189,6 +189,62 @@ void main() {
     expect(params[1]['non_personalized'], 'true');
   });
 
+  test('serve parses the slot rotation cadence', () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            final body = jsonDecode(displayFixture) as Map<String, Object?>;
+            body['refresh_after_seconds'] = 60;
+            return http.Response(jsonEncode(body), 200);
+          }
+          return http.Response(featuresFixture(), 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp!.refreshAfterSeconds, 60);
+  });
+
+  test('serve omits the rotation cadence when the slot has none', () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            return http.Response(displayFixture, 200);
+          }
+          return http.Response(featuresFixture(), 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    final resp = await ad.serve(slotId: 'slot_x');
+    expect(resp!.refreshAfterSeconds, 0);
+  });
+
+  test('rotation index is sent so refresh impressions stay segregable',
+      () async {
+    final params = <Map<String, String>>[];
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/serve') {
+            params.add(Map<String, String>.from(req.url.queryParameters));
+            return http.Response(displayFixture, 200);
+          }
+          return http.Response(featuresFixture(), 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    await ad.serve(slotId: 'slot_x');
+    await ad.serve(slotId: 'slot_x', refreshSeq: 2);
+
+    expect(params[0].containsKey('rq'), isFalse);
+    expect(params[1]['rq'], '2');
+  });
+
   test('features cache reflects remote flag on ensure', () async {
     var currentFlag = false;
     transport_seam.transportClientOverride = () => MockClient((req) async {

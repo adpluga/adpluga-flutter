@@ -49,8 +49,10 @@ class Transport {
     String? userHash,
     bool nonPersonalized = false,
     List<String>? consentSignals,
+    int refreshSeq = 0,
   }) async {
     final params = <String, String>{'slot': slotId};
+    if (refreshSeq > 0) params['rq'] = '$refreshSeq';
     if (format != null && format.isNotEmpty) params['fmt'] = format;
     if (userHash != null && userHash.isNotEmpty) params['u'] = userHash;
     if (nonPersonalized) params['non_personalized'] = 'true';

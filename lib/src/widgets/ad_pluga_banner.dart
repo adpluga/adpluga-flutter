@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../ad_pluga.dart';
+import '../constants.dart';
 import '../errors.dart';
 import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
@@ -38,16 +41,31 @@ class AdPlugaBanner extends StatefulWidget {
   State<AdPlugaBanner> createState() => _AdPlugaBannerState();
 }
 
-class _AdPlugaBannerState extends State<AdPlugaBanner> {
+class _AdPlugaBannerState extends State<AdPlugaBanner>
+    with WidgetsBindingObserver {
   ServeResponse? _response;
   int? _visibilityHandle;
   bool _clickFired = false;
   bool _disposed = false;
+  Timer? _refreshTimer;
+  int _refreshSeq = 0;
+  bool _foreground = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground) {
+      _scheduleRefresh();
+    } else {
+      _cancelRefresh();
+    }
   }
 
   @override
@@ -55,9 +73,11 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.slotId != widget.slotId ||
         oldWidget.format != widget.format) {
+      _cancelRefresh();
       _teardownVisibility();
       _response = null;
       _clickFired = false;
+      _refreshSeq = 0;
       _load();
     }
   }
@@ -65,7 +85,9 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
   @override
   void dispose() {
     _disposed = true;
+    _cancelRefresh();
     _teardownVisibility();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -76,17 +98,56 @@ class _AdPlugaBannerState extends State<AdPlugaBanner> {
       return;
     }
     try {
-      final resp = await ad.serve(slotId: widget.slotId, format: widget.format);
+      final resp = await ad.serve(
+        slotId: widget.slotId,
+        format: widget.format,
+        refreshSeq: _refreshSeq,
+      );
       if (_disposed) return;
       if (resp == null) {
         widget.onError?.call(const NetworkError('no fill'));
         return;
       }
-      setState(() => _response = resp);
+      setState(() {
+        _response = resp;
+        _clickFired = false;
+      });
       _armVisibility(ad, resp);
+      _scheduleRefresh();
     } on AdPlugaError catch (e) {
       widget.onError?.call(e);
     }
+  }
+
+  /// Arms the next rotation for the cadence the server published for this
+  /// slot. Nothing is scheduled when the slot has no cadence, when the app is
+  /// backgrounded, or when the value is below the industry floor.
+  void _scheduleRefresh() {
+    _cancelRefresh();
+    if (_disposed || !_foreground) return;
+    final secs = _response?.refreshAfterSeconds ?? 0;
+    if (secs < kMinRefreshSeconds) return;
+    _refreshTimer = Timer(Duration(seconds: secs), _onRefreshTick);
+  }
+
+  void _cancelRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
+
+  void _onRefreshTick() {
+    if (_disposed || !_foreground) return;
+    // Rotating an off-screen ad would spend a decision on an impression the
+    // MRC guidelines classify as non-viewable: wait for it to come back into
+    // view instead, re-arming on the same cadence.
+    final visible = VisibilityTracker.instance
+        .isVisible(() => context.findRenderObject() as RenderBox?);
+    if (!visible) {
+      _scheduleRefresh();
+      return;
+    }
+    _refreshSeq += 1;
+    _load();
   }
 
   void _armVisibility(AdPluga ad, ServeResponse resp) {

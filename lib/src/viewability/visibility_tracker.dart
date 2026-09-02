@@ -42,6 +42,26 @@ class VisibilityTracker {
     }
   }
 
+  /// Whether the box currently meets the IAB pixel threshold. Used by the
+  /// refresh scheduler so a rotation never happens off-screen (MRC counts
+  /// out-of-view auto-refresh as non-viewable).
+  bool isVisible(RenderBoxProvider provider) {
+    return _visibleRatio(provider.call(), _currentViewSize()) >=
+        kViewabilityThreshold;
+  }
+
+  double _visibleRatio(RenderBox? box, Rect view) {
+    if (box == null || !box.attached || !box.hasSize) return 0;
+    final size = box.size;
+    if (size.isEmpty) return 0;
+    final topLeft = box.localToGlobal(Offset.zero);
+    final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
+    final visible = rect.intersect(view);
+    final visibleArea = visible.isEmpty ? 0 : visible.width * visible.height;
+    final totalArea = size.width * size.height;
+    return totalArea > 0 ? visibleArea / totalArea : 0.0;
+  }
+
   void _ensureTicking() {
     if (_timer != null) return;
     _lastTick = DateTime.now();
@@ -60,20 +80,7 @@ class VisibilityTracker {
 
     _slots.forEach((handle, slot) {
       if (slot.fired) return;
-      final box = slot.provider.call();
-      if (box == null || !box.attached || !box.hasSize) {
-        return;
-      }
-      final size = box.size;
-      if (size.isEmpty) return;
-      final topLeft = box.localToGlobal(Offset.zero);
-      final rect =
-          Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
-      final visible = rect.intersect(view);
-      final visibleArea = visible.isEmpty ? 0 : visible.width * visible.height;
-      final totalArea = size.width * size.height;
-      final ratio = totalArea > 0 ? visibleArea / totalArea : 0.0;
-
+      final ratio = _visibleRatio(slot.provider.call(), view);
       if (ratio >= kViewabilityThreshold) {
         slot.accumulated += elapsed;
         if (slot.accumulated >= kViewabilityDwell) {

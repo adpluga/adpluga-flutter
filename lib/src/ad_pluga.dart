@@ -115,6 +115,7 @@ class AdPluga {
     required String slotId,
     String? format,
     String? userHash,
+    int refreshSeq = 0,
   }) async {
     if (_upgradeBlocked) return null;
     final start = DateTime.now();
@@ -124,6 +125,7 @@ class AdPluga {
         format: format,
         userHash: userHash,
         nonPersonalized: !_consent.state.isPersonalized,
+        refreshSeq: refreshSeq,
       );
       final latency = DateTime.now().difference(start).inMilliseconds;
       _telemetry.record(SdkEventType.serveRequest, latencyMs: latency);

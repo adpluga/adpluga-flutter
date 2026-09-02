@@ -136,6 +136,7 @@ class ServeResponse {
     this.conversionUrl,
     this.conversionToken,
     this.quartilePings,
+    this.refreshAfterSeconds = 0,
   });
 
   final Ad ad;
@@ -146,6 +147,10 @@ class ServeResponse {
   final String? conversionUrl;
   final String? conversionToken;
   final Map<String, String>? quartilePings;
+
+  /// Publisher-configured rotation cadence for this slot, in seconds.
+  /// 0 means the slot must not rotate.
+  final int refreshAfterSeconds;
 
   factory ServeResponse.fromJson(Map<String, Object?> json) {
     final adJson = (json['ad'] as Map?)?.cast<String, Object?>() ?? const {};
@@ -161,6 +166,8 @@ class ServeResponse {
       quartilePings: pings is Map
           ? pings.map((k, v) => MapEntry(k.toString(), v?.toString() ?? ''))
           : null,
+      refreshAfterSeconds:
+          (json['refresh_after_seconds'] as num?)?.toInt() ?? 0,
     );
   }
 }

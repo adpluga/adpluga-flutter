@@ -4,6 +4,21 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — 2026-09
+
+### Added
+- Slot rotation: banners now re-serve on the cadence the publisher configures
+  for the slot (`refresh_after_seconds` on the serve response). Long-lived app
+  screens no longer show a single frozen creative — the mobile equivalent of a
+  web page reload.
+- Rotation is gated so it cannot waste the publisher's budget or produce
+  non-viewable impressions: it only fires while the ad meets the IAB pixel
+  threshold and the app is in the foreground, is floored at 30s
+  (`kMinRefreshSeconds`), and the timer is cancelled on dispose and while
+  backgrounded.
+- Each rotation sends its index (`rq`) so refreshed impressions stay
+  segregable from the initial render, as the MRC guidelines require.
+
 ## [0.4.1] — 2026-08
 
 ### Added
