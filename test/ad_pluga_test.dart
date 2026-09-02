@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:adpluga_flutter/adpluga_flutter.dart';
 import 'package:adpluga_flutter/src/client/transport.dart' as transport_seam;
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -380,5 +381,91 @@ void main() {
     expect(ad.response.ad.skippableAfterMs, 5000);
     expect(ad.response.ad.rewardAmount, 10);
     expect(ad.response.ad.rewardCurrency, 'COIN');
+  });
+
+  test('Ad.fromJson parses a carousel deck and drops slides without a creative',
+      () {
+    final ad = Ad.fromJson(<String, Object?>{
+      'id': 'ad-1',
+      'type': 'carousel',
+      'width': 300,
+      'height': 250,
+      'slides': <Object?>[
+        <String, Object?>{
+          'asset_url': 'https://cdn.example/1.png',
+          'title': 'Card 1',
+          'cta_text': 'Ver',
+        },
+        <String, Object?>{'asset_url': ''},
+        <String, Object?>{'asset_url': 'https://cdn.example/2.png'},
+        'not-a-slide',
+      ],
+    });
+    expect(ad.kind, AdKind.carousel);
+    expect(ad.slides.length, 2);
+    expect(ad.slides.first.title, 'Card 1');
+    expect(ad.slides.first.ctaText, 'Ver');
+    expect(ad.slides.last.assetUrl, 'https://cdn.example/2.png');
+  });
+
+  test('Ad.fromJson leaves slides empty for every other creative type', () {
+    final ad = Ad.fromJson(<String, Object?>{
+      'id': 'ad-2',
+      'type': 'image',
+      'asset_url': 'https://cdn.example/banner.png',
+    });
+    expect(ad.slides, isEmpty);
+  });
+
+  testWidgets('AdPlugaCarousel reports one tap per card, never a new serve',
+      (tester) async {
+    var clicks = 0;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 300,
+          height: 250,
+          child: AdPlugaCarousel(
+            slides: const <Slide>[
+              Slide(assetUrl: 'https://cdn.example/1.png', title: 'Card 1'),
+              Slide(assetUrl: 'https://cdn.example/2.png'),
+            ],
+            onClick: () => clicks += 1,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(PageView));
+    expect(clicks, 1);
+  });
+
+  testWidgets('AdPlugaCarousel signals interaction when the deck is swiped',
+      (tester) async {
+    var interactions = 0;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 300,
+          height: 250,
+          child: AdPlugaCarousel(
+            slides: const <Slide>[
+              Slide(assetUrl: 'https://cdn.example/1.png'),
+              Slide(assetUrl: 'https://cdn.example/2.png'),
+            ],
+            onClick: () {},
+            onInteraction: () => interactions += 1,
+          ),
+        ),
+      ),
+    );
+    await tester.timedDrag(
+      find.byType(PageView),
+      const Offset(-280, 0),
+      const Duration(milliseconds: 300),
+    );
+    await tester.pumpAndSettle();
+    expect(interactions, 1);
   });
 }

@@ -8,6 +8,7 @@ enum AdKind {
   video,
   videoRewarded,
   audio,
+  carousel,
   unknown
 }
 
@@ -27,6 +28,8 @@ AdKind adKindFromString(String value) {
       return AdKind.videoRewarded;
     case 'audio':
       return AdKind.audio;
+    case 'carousel':
+      return AdKind.carousel;
     default:
       return AdKind.unknown;
   }
@@ -53,6 +56,43 @@ AdSource adSourceFromString(String value) {
   }
 }
 
+/// One card of a carousel. The whole deck shares the ad's click token and its
+/// single impression, so swiping never mints or spends anything extra.
+@immutable
+class Slide {
+  const Slide({
+    required this.assetUrl,
+    this.title,
+    this.body,
+    this.ctaText,
+  });
+
+  final String assetUrl;
+  final String? title;
+  final String? body;
+  final String? ctaText;
+
+  factory Slide.fromJson(Map<String, Object?> json) {
+    return Slide(
+      assetUrl: (json['asset_url'] as String?) ?? '',
+      title: json['title'] as String?,
+      body: json['body'] as String?,
+      ctaText: json['cta_text'] as String?,
+    );
+  }
+}
+
+List<Slide> _slidesFromJson(Object? raw) {
+  if (raw is! List) return const <Slide>[];
+  final out = <Slide>[];
+  for (final item in raw) {
+    if (item is! Map) continue;
+    final slide = Slide.fromJson(Map<String, Object?>.from(item));
+    if (slide.assetUrl.isNotEmpty) out.add(slide);
+  }
+  return out;
+}
+
 @immutable
 class Ad {
   const Ad({
@@ -75,6 +115,7 @@ class Ad {
     this.skippableAfterMs = 0,
     this.rewardAmount = 0,
     this.rewardCurrency,
+    this.slides = const <Slide>[],
     this.isTest = false,
   });
 
@@ -97,6 +138,7 @@ class Ad {
   final int skippableAfterMs;
   final int rewardAmount;
   final String? rewardCurrency;
+  final List<Slide> slides;
   final bool isTest;
 
   factory Ad.fromJson(Map<String, Object?> json) {
@@ -120,6 +162,7 @@ class Ad {
       skippableAfterMs: (json['skippable_after_ms'] as num?)?.toInt() ?? 0,
       rewardAmount: (json['reward_amount'] as num?)?.toInt() ?? 0,
       rewardCurrency: json['reward_currency'] as String?,
+      slides: _slidesFromJson(json['slides']),
       isTest: (json['test'] as bool?) ?? false,
     );
   }

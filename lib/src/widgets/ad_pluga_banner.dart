@@ -7,6 +7,7 @@ import '../constants.dart';
 import '../errors.dart';
 import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
+import 'ad_pluga_carousel.dart';
 import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
 import 'test_badge.dart';
@@ -50,6 +51,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
   Timer? _refreshTimer;
   int _refreshSeq = 0;
   bool _foreground = true;
+  DateTime? _lastDeckInteraction;
 
   @override
   void initState() {
@@ -78,6 +80,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
       _response = null;
       _clickFired = false;
       _refreshSeq = 0;
+      _lastDeckInteraction = null;
       _load();
     }
   }
@@ -139,6 +142,12 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     _refreshTimer = null;
   }
 
+  /// Records a swipe so a scheduled rotation backs off: replacing the deck
+  /// while the reader is moving through it would throw away their place.
+  void _noteDeckInteraction() {
+    _lastDeckInteraction = DateTime.now();
+  }
+
   void _onRefreshTick() {
     if (_disposed || !_foreground) return;
     // Rotating an off-screen ad would spend a decision on an impression the
@@ -147,6 +156,16 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     final visible = VisibilityTracker.instance
         .isVisible(() => context.findRenderObject() as RenderBox?);
     if (!visible) {
+      _scheduleRefresh();
+      return;
+    }
+    // A deck the reader is still swiping through keeps the slot; rotation
+    // resumes one full cadence after the last swipe.
+    final last = _lastDeckInteraction;
+    final secs = _response?.refreshAfterSeconds ?? 0;
+    if (last != null &&
+        secs > 0 &&
+        DateTime.now().difference(last) < Duration(seconds: secs)) {
       _scheduleRefresh();
       return;
     }
@@ -251,6 +270,18 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
           );
         }
         break;
+      case AdKind.carousel:
+        if (ad.slides.isEmpty) {
+          content = widget.placeholder ?? const SizedBox.shrink();
+        } else {
+          content = AdPlugaCarousel(
+            slides: ad.slides,
+            onClick: _handleTap,
+            onInteraction: _noteDeckInteraction,
+            isTest: ad.isTest,
+          );
+        }
+        break;
       case AdKind.native:
       case AdKind.unknown:
         content = widget.placeholder ?? const SizedBox.shrink();
@@ -269,7 +300,8 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
           onTap: (ad.kind == AdKind.html ||
                   ad.kind == AdKind.video ||
                   ad.kind == AdKind.videoRewarded ||
-                  ad.kind == AdKind.audio)
+                  ad.kind == AdKind.audio ||
+                  ad.kind == AdKind.carousel)
               ? null
               : _handleTap,
           child: content,
