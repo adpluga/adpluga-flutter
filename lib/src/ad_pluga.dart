@@ -94,17 +94,27 @@ class AdPluga {
 
   static Future<AdPluga> initialize({
     required String publisherKey,
-    String endpoint = kDefaultEndpoint,
+    String? endpoint,
     ConsentState consent = const ConsentState(),
     bool telemetryEnabled = true,
     UpgradeRequiredHandler? onUpgradeRequired,
   }) async {
-    if (_instance != null) return _instance!;
     if (!_isValidKey(publisherKey)) {
       throw const InvalidKeyError(
           'publisherKey must start with pk_live_ or pk_test_');
     }
-    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final normalizedEndpoint = _normalizeEndpoint(endpoint ?? kDefaultEndpoint);
+    final existing = _instance;
+    if (existing != null) {
+      // Rotating a key revokes the previous one at once, so silently keeping
+      // the old instance would leave the app serving with a dead key and no
+      // way to notice. Same key: the call is idempotent as before.
+      if (existing.config.publisherKey != publisherKey) {
+        throw AlreadyInitializedError(
+            existing.config.publisherKey, publisherKey);
+      }
+      return existing;
+    }
     final consentStore = ConsentStore(consent);
     final transport = Transport(
       endpoint: normalizedEndpoint,

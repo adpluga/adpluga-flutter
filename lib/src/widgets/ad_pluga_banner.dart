@@ -8,6 +8,7 @@ import '../errors.dart';
 import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_carousel.dart';
+import 'click_through.dart';
 import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
 import 'test_badge.dart';
@@ -206,6 +207,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     if (ad == null || resp == null || _clickFired) return;
     _clickFired = true;
     ad.fireClick(resp, widget.slotId);
+    unawaited(openClickThrough(resp.ad.clickUrl));
     widget.onClick?.call();
   }
 
@@ -295,25 +297,40 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
         break;
     }
 
-    return SizedBox(
-      width: w0,
-      height: h0,
-      child: Semantics(
-        label: ad.sponsoredBy != null
-            ? 'Sponsored by ${ad.sponsoredBy}'
-            : 'Sponsored',
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: (ad.kind == AdKind.html ||
-                  ad.kind == AdKind.video ||
-                  ad.kind == AdKind.videoRewarded ||
-                  ad.kind == AdKind.audio ||
-                  ad.kind == AdKind.carousel)
-              ? null
-              : _handleTap,
-          child: content,
-        ),
+    final slot = Semantics(
+      label: ad.sponsoredBy != null
+          ? 'Sponsored by ${ad.sponsoredBy}'
+          : 'Sponsored',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: (ad.kind == AdKind.html ||
+                ad.kind == AdKind.video ||
+                ad.kind == AdKind.videoRewarded ||
+                ad.kind == AdKind.audio ||
+                ad.kind == AdKind.carousel)
+            ? null
+            : _handleTap,
+        child: content,
       ),
     );
+
+    // The host always wins when it sized the slot itself. Otherwise the box
+    // takes the served creative's own ratio, so the fit is exact by
+    // construction and the integrator has nothing to guess. Pinning the box to
+    // the creative's pixel width instead would overflow any screen narrower
+    // than the creative.
+    if (widget.width != null && widget.height != null) {
+      return SizedBox(width: w0, height: h0, child: slot);
+    }
+    final ratio = _servedRatio(ad);
+    if (ratio == null) {
+      return SizedBox(width: w0, height: h0, child: slot);
+    }
+    return AspectRatio(aspectRatio: ratio, child: slot);
+  }
+
+  double? _servedRatio(Ad ad) {
+    if (ad.width <= 0 || ad.height <= 0) return null;
+    return ad.width / ad.height;
   }
 }

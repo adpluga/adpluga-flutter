@@ -533,4 +533,52 @@ void main() {
     expect(body['conv_type'], 'purchase');
     expect(body['value_cents'], 1250);
   });
+
+  test('re-initializing with a different key throws instead of no-op',
+      () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final first = await AdPluga.initialize(
+      publisherKey: 'pk_test_aaaaaaaa',
+      telemetryEnabled: false,
+    );
+
+    // Rotating a key revokes the previous one, so silently returning the old
+    // instance would leave the app serving with a dead key.
+    await expectLater(
+      AdPluga.initialize(
+        publisherKey: 'pk_test_bbbbbbbb',
+        telemetryEnabled: false,
+      ),
+      throwsA(isA<AlreadyInitializedError>()),
+    );
+
+    // Same key stays idempotent.
+    final again = await AdPluga.initialize(
+      publisherKey: 'pk_test_aaaaaaaa',
+      telemetryEnabled: false,
+    );
+    expect(again, same(first));
+  });
+
+  test('a null endpoint falls back to the exported default', () async {
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    final ad = await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      endpoint: null,
+      telemetryEnabled: false,
+    );
+    expect(ad.config.endpoint, kDefaultEndpoint);
+  });
 }

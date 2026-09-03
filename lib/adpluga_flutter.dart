@@ -2,9 +2,11 @@ library adpluga_flutter;
 
 export 'src/ad_pluga.dart' show AdPluga, AdPlugaConfig, UpgradeRequiredHandler;
 export 'src/consent.dart' show ConsentState;
+export 'src/constants.dart' show kDefaultEndpoint;
 export 'src/errors.dart'
     show
         AdPlugaError,
+        AlreadyInitializedError,
         ConsentDeniedError,
         InvalidKeyError,
         NetworkError,
