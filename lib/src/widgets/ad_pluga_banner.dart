@@ -52,6 +52,10 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
   int _refreshSeq = 0;
   bool _foreground = true;
   DateTime? _lastDeckInteraction;
+  // Read in build, where depending on an inherited widget is legal, and probed
+  // from the viewability tick. Covers a hidden IndexedStack page and an
+  // explicit Visibility(maintainSize: true), both of which keep geometry.
+  bool _painting = true;
 
   @override
   void initState() {
@@ -152,8 +156,10 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     // Rotating an off-screen ad would spend a decision on an impression the
     // MRC guidelines classify as non-viewable: wait for it to come back into
     // view instead, re-arming on the same cadence.
-    final visible = VisibilityTracker.instance
-        .isVisible(() => context.findRenderObject() as RenderBox?);
+    final visible = VisibilityTracker.instance.isVisible(
+      () => context.findRenderObject() as RenderBox?,
+      isPainting: () => _painting,
+    );
     if (!visible) {
       _scheduleRefresh();
       return;
@@ -176,6 +182,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     _teardownVisibility();
     _visibilityHandle = VisibilityTracker.instance.register(
       () => context.findRenderObject() as RenderBox?,
+      isPainting: () => _painting,
       () {
         if (_disposed) return;
         ad.fireImpression(resp, widget.slotId);
@@ -204,6 +211,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
 
   @override
   Widget build(BuildContext context) {
+    _painting = Visibility.of(context);
     final resp = _response;
     final w = widget.width ?? resp?.ad.width.toDouble();
     final h = widget.height ?? resp?.ad.height.toDouble();

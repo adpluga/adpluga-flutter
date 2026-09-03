@@ -37,6 +37,9 @@ class _AdPlugaNativeState extends State<AdPlugaNative> {
   int? _visibilityHandle;
   bool _clickFired = false;
   bool _disposed = false;
+  // Read in build, where depending on an inherited widget is legal, and probed
+  // from the viewability tick.
+  bool _painting = true;
 
   @override
   void initState() {
@@ -78,6 +81,7 @@ class _AdPlugaNativeState extends State<AdPlugaNative> {
       setState(() => _response = resp);
       _visibilityHandle = VisibilityTracker.instance.register(
         () => context.findRenderObject() as RenderBox?,
+        isPainting: () => _painting,
         () {
           if (_disposed) return;
           ad.fireImpression(resp, widget.slotId);
@@ -108,6 +112,7 @@ class _AdPlugaNativeState extends State<AdPlugaNative> {
 
   @override
   Widget build(BuildContext context) {
+    _painting = Visibility.of(context);
     final resp = _response;
     if (resp == null) {
       return widget.placeholder ?? const SizedBox.shrink();
