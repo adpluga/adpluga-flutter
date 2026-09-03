@@ -4,6 +4,33 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — 2026-09
+
+### Fixed
+- Impressions are no longer counted for a slot the host is not painting. The
+  viewability check was pure geometry, so a banner on a hidden `IndexedStack`
+  page or inside a collapsed viewport kept a valid rect and billed as fully
+  viewable. It now consults `Visibility.of` and every ancestor paint clip,
+  matching what the Android and iOS SDKs already did.
+- Tapping an image creative now opens the advertiser destination. HTML and
+  video creatives always did; image ones reported the click and went nowhere,
+  so the advertiser paid for a tap that never arrived.
+- `initialize` with a **different** publisher key now fails instead of quietly
+  returning the existing instance. Rotating a key revokes the previous one at
+  once, so the silent path left an app serving with a dead key. The same key
+  stays idempotent; call `destroy()` first to re-initialize deliberately.
+- `conversion()` sent `type`/`value`; the API reads `conv_type`/`value_cents`,
+  so both were dropped. The old argument names still work, deprecated.
+
+### Changed
+- Without an explicit `width`/`height`, the banner now adopts the served
+  creative's aspect ratio instead of pinning the box to its pixel size, so the
+  fit is exact and a creative wider than the screen no longer overflows. A host
+  that passes both dimensions still wins.
+- `endpoint` accepts null to mean "use the default", and `kDefaultEndpoint` is
+  exported, so a host reading the endpoint from configuration no longer has to
+  hardcode an AdPluga hostname.
+
 ## [0.6.0] — 2026-09
 
 ### Added
