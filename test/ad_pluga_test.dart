@@ -581,4 +581,48 @@ void main() {
     );
     expect(ad.config.endpoint, kDefaultEndpoint);
   });
+
+  testWidgets('a no-fill slot keeps trying instead of dying for the session',
+      (tester) async {
+    var serves = 0;
+    transport_seam.transportClientOverride = () => MockClient((req) async {
+          if (req.url.path == '/v1/features') {
+            return http.Response(featuresFixture(), 200);
+          }
+          if (req.url.path == '/v1/serve') {
+            serves += 1;
+            // First attempt misses; the slot must come back on its own.
+            if (serves == 1) return http.Response('', 204);
+            return http.Response(displayFixture, 200);
+          }
+          return http.Response('{}', 200);
+        });
+
+    await AdPluga.initialize(
+      publisherKey: 'pk_test_abc',
+      telemetryEnabled: false,
+    );
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: SizedBox(
+          width: 320,
+          height: 100,
+          child: AdPlugaBanner(slotId: 'slot_x'),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(serves, 1, reason: 'the first attempt missed');
+
+    // pk_test_ floor is 15s, so the first retry lands there.
+    await tester.pump(const Duration(seconds: 16));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(serves, 2, reason: 'a missed fill must schedule another attempt');
+
+    // testWidgets asserts on pending timers before tearDown runs, and the
+    // features cache keeps a periodic one.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await AdPluga.maybeInstance?.destroy();
+  });
 }

@@ -54,6 +54,10 @@ class AdPluga {
   }
 
   final AdPlugaConfig config;
+
+  /// True while running against a sandbox key. Clients use it for the cadence
+  /// floor before any response has arrived.
+  bool get isTestKey => config.publisherKey.startsWith('pk_test_');
   final Transport _transport;
   final ConsentStore _consent;
   String? _installId;

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../ad_pluga.dart';
 import '../constants.dart';
 import '../errors.dart';
+import '../logger.dart';
 import '../models/serve_response.dart';
 import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_carousel.dart';
@@ -53,6 +54,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
   int _refreshSeq = 0;
   bool _foreground = true;
   DateTime? _lastDeckInteraction;
+  int _fillFailures = 0;
   // Read in build, where depending on an inherited widget is legal, and probed
   // from the viewability tick. Covers a hidden IndexedStack page and an
   // explicit Visibility(maintainSize: true), both of which keep geometry.
@@ -68,10 +70,12 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
-    if (_foreground) {
-      _scheduleRefresh();
-    } else {
+    if (!_foreground) {
       _cancelRefresh();
+    } else if (_response == null) {
+      _scheduleRetry();
+    } else {
+      _scheduleRefresh();
     }
   }
 
@@ -85,6 +89,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
       _response = null;
       _clickFired = false;
       _refreshSeq = 0;
+      _fillFailures = 0;
       _lastDeckInteraction = null;
       _load();
     }
@@ -103,6 +108,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     final ad = AdPluga.maybeInstance;
     if (ad == null) {
       widget.onError?.call(const NotInitializedError());
+      _scheduleRetry();
       return;
     }
     try {
@@ -114,8 +120,10 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
       if (_disposed) return;
       if (resp == null) {
         widget.onError?.call(const NetworkError('no fill'));
+        _scheduleRetry();
         return;
       }
+      _fillFailures = 0;
       setState(() {
         _response = resp;
         _clickFired = false;
@@ -123,6 +131,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
       _armVisibility(ad, resp);
       _scheduleRefresh();
     } on AdPlugaError catch (e) {
+      _scheduleRetry();
       widget.onError?.call(e);
     }
   }
@@ -139,6 +148,31 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
     final floor = resp.ad.isTest ? kMinRefreshSecondsTest : kMinRefreshSeconds;
     _refreshTimer =
         Timer(Duration(seconds: secs < floor ? floor : secs), _onRefreshTick);
+  }
+
+  /// Arms another attempt after a failed fill, backing off exponentially from
+  /// the client's cadence floor. Independent of the slot's rotation cadence:
+  /// rotation is off by default, so a slot that relied on it would stay blank
+  /// for the rest of the session after a single miss.
+  void _scheduleRetry() {
+    _cancelRefresh();
+    if (_disposed || !_foreground) return;
+    final ad = AdPluga.maybeInstance;
+    final base =
+        (ad?.isTestKey ?? false) ? kMinRefreshSecondsTest : kMinRefreshSeconds;
+    final capped = _fillFailures > 10 ? 10 : _fillFailures;
+    final backoff = base * (1 << capped);
+    final secs = backoff > kFillRetryMaxBackoffSeconds
+        ? kFillRetryMaxBackoffSeconds
+        : backoff;
+    _fillFailures += 1;
+    logger.warn('slot ${widget.slotId} unfilled; retrying in ${secs}s');
+    _refreshTimer = Timer(Duration(seconds: secs), _onRetryTick);
+  }
+
+  void _onRetryTick() {
+    if (_disposed || !_foreground) return;
+    _load();
   }
 
   void _cancelRefresh() {

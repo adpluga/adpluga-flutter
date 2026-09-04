@@ -12,6 +12,12 @@ const Duration kRetryBaseBackoff = Duration(milliseconds: 200);
 /// keeps rotating. Live traffic honours the 30s minimum the mobile ad industry
 /// enforces; sandbox creatives may rotate every 15s so an integrator can watch
 /// it work without waiting.
+/// A slot that fails to fill must keep trying, or one transient miss costs the
+/// publisher that slot for the whole session. Retry is deliberately independent
+/// of the rotation cadence: rotation is off by default, so a slot with no
+/// cadence would otherwise never recover.
+const int kFillRetryMaxBackoffSeconds = 300;
+
 const int kMinRefreshSeconds = 30;
 const int kMinRefreshSecondsTest = 15;
 
