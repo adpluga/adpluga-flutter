@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:adpluga_flutter/adpluga_flutter.dart';
 import 'package:adpluga_flutter/src/client/transport.dart' as transport_seam;
+import 'package:adpluga_flutter/src/widgets/ad_label.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -624,5 +625,35 @@ void main() {
     // features cache keeps a periodic one.
     await tester.pumpWidget(const SizedBox.shrink());
     await AdPluga.maybeInstance?.destroy();
+  });
+
+  // An unlabelled ad image is a tap target with no name, so the label has to
+  // survive the wire and fall back when the advertiser wrote nothing.
+  test('Ad.fromJson reads the alternative text', () {
+    final withAlt = Ad.fromJson(<String, Object?>{
+      'id': 'ad-1',
+      'type': 'image',
+      'asset_url': 'https://cdn.example/b.png',
+      'title': 'Promo',
+      'alt_text': 'Perfumes a 20 por cento',
+    });
+    expect(withAlt.altText, 'Perfumes a 20 por cento');
+    expect(adLabel(withAlt), 'Perfumes a 20 por cento');
+
+    final bare = Ad.fromJson(<String, Object?>{
+      'id': 'ad-2',
+      'type': 'image',
+      'asset_url': 'https://cdn.example/b.png',
+      'title': 'Promo',
+    });
+    expect(bare.altText, isNull);
+    expect(adLabel(bare), 'Promo');
+
+    final nameless = Ad.fromJson(<String, Object?>{
+      'id': 'ad-3',
+      'type': 'image',
+      'asset_url': 'https://cdn.example/b.png',
+    });
+    expect(adLabel(nameless), isNotEmpty);
   });
 }

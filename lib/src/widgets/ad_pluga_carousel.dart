@@ -21,11 +21,16 @@ class AdPlugaCarousel extends StatefulWidget {
     super.key,
     required this.slides,
     required this.onClick,
+    this.fallbackLabel = 'Anuncio',
     this.onInteraction,
     this.isTest = false,
   });
 
   final List<Slide> slides;
+
+  /// Announced for a slide that carries no copy of its own. The deck shares one
+  /// destination, so an unnamed card would be an unnamed link.
+  final String fallbackLabel;
   final VoidCallback onClick;
   final VoidCallback? onInteraction;
   final bool isTest;
@@ -60,6 +65,7 @@ class _AdPlugaCarouselState extends State<AdPlugaCarousel> {
       onPageChanged: _onPageChanged,
       itemBuilder: (context, i) => _SlideCard(
         slide: slides[i],
+        fallbackLabel: widget.fallbackLabel,
         onTap: widget.onClick,
       ),
     );
@@ -83,9 +89,14 @@ class _AdPlugaCarouselState extends State<AdPlugaCarousel> {
 }
 
 class _SlideCard extends StatelessWidget {
-  const _SlideCard({required this.slide, required this.onTap});
+  const _SlideCard({
+    required this.slide,
+    required this.fallbackLabel,
+    required this.onTap,
+  });
 
   final Slide slide;
+  final String fallbackLabel;
   final VoidCallback onTap;
 
   @override
@@ -102,6 +113,7 @@ class _SlideCard extends StatelessWidget {
             child: Image.network(
               slide.assetUrl,
               fit: BoxFit.cover,
+              semanticLabel: slide.title?.isNotEmpty == true ? slide.title : fallbackLabel,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
           ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../ad_pluga.dart';
+import 'ad_label.dart';
 import '../constants.dart';
 import '../errors.dart';
 import '../logger.dart';
@@ -275,6 +276,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
             Image.network(
               url,
               fit: BoxFit.contain,
+              semanticLabel: adLabel(ad),
               errorBuilder: (_, __, ___) =>
                   widget.placeholder ?? const SizedBox.shrink(),
             ),
@@ -319,6 +321,7 @@ class _AdPlugaBannerState extends State<AdPlugaBanner>
         } else {
           content = AdPlugaCarousel(
             slides: ad.slides,
+            fallbackLabel: adLabel(ad),
             onClick: _handleTap,
             onInteraction: _noteDeckInteraction,
             isTest: ad.isTest,

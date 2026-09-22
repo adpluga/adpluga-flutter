@@ -105,6 +105,7 @@ class Ad {
     this.width = 0,
     this.height = 0,
     this.title,
+    this.altText,
     this.body,
     this.ctaText,
     this.sponsoredBy,
@@ -128,6 +129,11 @@ class Ad {
   final int width;
   final int height;
   final String? title;
+
+  /// Read aloud in place of the creative. An ad is never decorative, so a
+  /// renderer with nothing here falls back to the title rather than leaving
+  /// the image unlabelled.
+  final String? altText;
   final String? body;
   final String? ctaText;
   final String? sponsoredBy;
@@ -152,6 +158,7 @@ class Ad {
       width: (json['width'] as num?)?.toInt() ?? 0,
       height: (json['height'] as num?)?.toInt() ?? 0,
       title: json['title'] as String?,
+      altText: json['alt_text'] as String?,
       body: json['body'] as String?,
       ctaText: json['cta_text'] as String?,
       sponsoredBy: json['sponsored_by'] as String?,
