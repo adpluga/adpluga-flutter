@@ -113,7 +113,8 @@ class _SlideCard extends StatelessWidget {
             child: Image.network(
               slide.assetUrl,
               fit: BoxFit.cover,
-              semanticLabel: slide.title?.isNotEmpty == true ? slide.title : fallbackLabel,
+              semanticLabel:
+                  slide.title?.isNotEmpty == true ? slide.title : fallbackLabel,
               errorBuilder: (_, __, ___) => const SizedBox.shrink(),
             ),
           ),
