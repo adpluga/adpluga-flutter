@@ -9,11 +9,20 @@ native, interstitial, rewarded, HTML5, and video formats.
 - **Dart**: `>=3.0.0 <4.0.0` · **Flutter**: `>=3.10.0`
 - **License**: Proprietary — see [LICENSE](./LICENSE)
 
+## Why AdPluga
+
+- **100,000 ad decisions free every month.** No card, no expiry.
+- **No traffic minimum.** When there is no demand, a house ad fills the slot so it never renders empty.
+- **Test mode first.** A `pk_test_` key serves ads with no billing and no quota use; switch to `pk_live_` when you are ready.
+- **One integration, every demand source.** Direct deals, network demand and mediation behind the same slot.
+
+Create a free account at <https://adpluga.com/en/> and get your keys in the dashboard.
+
 ## Install
 
 ```yaml
 dependencies:
-  adpluga_flutter: ^0.2.0
+  adpluga_flutter: ^0.7.2
 ```
 
 ```bash
@@ -26,7 +35,7 @@ flutter pub add adpluga_flutter
 import 'package:adpluga_flutter/adpluga_flutter.dart';
 
 await AdPluga.initialize(
-  publisherKey: 'pk_live_...',
+  publisherKey: 'pk_test_...',
 );
 
 AdPlugaBanner(
@@ -37,7 +46,7 @@ AdPlugaBanner(
 );
 ```
 
-Full API reference and integration guides: <https://app.adpluga.com/docs/sdk/flutter>.
+Integration guides and API reference: <https://adpluga.com/en/devs/sdks/> · quick start in two minutes: <https://adpluga.com/en/devs/quickstart/>.
 
 ## Support
 
