@@ -174,6 +174,8 @@ class Ad {
     this.rewardCurrency,
     this.slides = const <Slide>[],
     this.isTest = false,
+    this.impressionTrackers = const <String>[],
+    this.clickTrackers = const <String>[],
   });
 
   /// Ad identifier.
@@ -248,6 +250,13 @@ class Ad {
   /// `TEST` badge.
   final bool isTest;
 
+  /// A mediation bidder's own impression pixels, fired with ours so the SSP
+  /// counts (and pays for) what it served. Empty for first-party creatives.
+  final List<String> impressionTrackers;
+
+  /// A mediation bidder's own click pixels, fired with ours.
+  final List<String> clickTrackers;
+
   /// Parses the `ad` object of a serve response. Slides without an
   /// `asset_url` are dropped.
   factory Ad.fromJson(Map<String, Object?> json) {
@@ -274,8 +283,15 @@ class Ad {
       rewardCurrency: json['reward_currency'] as String?,
       slides: _slidesFromJson(json['slides']),
       isTest: (json['test'] as bool?) ?? false,
+      impressionTrackers: _stringList(json['impression_trackers']),
+      clickTrackers: _stringList(json['click_trackers']),
     );
   }
+}
+
+List<String> _stringList(Object? raw) {
+  if (raw is! List) return const <String>[];
+  return List<String>.unmodifiable(raw.whereType<String>());
 }
 
 /// Result of a successful serve request: the ad plus the URLs and tokens

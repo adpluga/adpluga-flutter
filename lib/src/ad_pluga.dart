@@ -260,6 +260,9 @@ class AdPluga {
     } else {
       unawaited(_transport.track(event: 'impression', token: resp.trackToken));
     }
+    for (final tracker in resp.ad.impressionTrackers) {
+      unawaited(_transport.beacon(tracker));
+    }
     _telemetry.record(SdkEventType.impression);
     _emit(ImpressionEvent(slotId: slotId, source: resp.source));
   }
@@ -295,6 +298,9 @@ class AdPluga {
       unawaited(_transport.beacon(url));
     } else {
       logger.warn('click dropped: serve response carried no click url');
+    }
+    for (final tracker in resp.ad.clickTrackers) {
+      unawaited(_transport.beacon(tracker));
     }
     _telemetry.record(SdkEventType.click);
     _emit(ClickEvent(slotId: slotId, source: resp.source));

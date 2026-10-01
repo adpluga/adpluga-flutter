@@ -6,12 +6,16 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../constants.dart';
+import 'device_user_agent.dart';
 import '../errors.dart';
 import '../logger.dart';
 import '../models/features.dart';
 import '../models/serve_response.dart';
 
 typedef HttpClientFactory = http.Client Function();
+
+/// Resolves the device User-Agent an SSP expects in device.ua.
+typedef UserAgentSource = Future<String?> Function();
 
 @visibleForTesting
 HttpClientFactory? transportClientOverride;
@@ -22,14 +26,30 @@ class Transport {
     required this.publisherKey,
     HttpClientFactory? clientFactory,
     math.Random? random,
+    UserAgentSource? userAgentSource,
   })  : _clientFactory =
             clientFactory ?? (transportClientOverride ?? http.Client.new),
-        _random = random ?? math.Random();
+        _random = random ?? math.Random(),
+        _userAgentSource = userAgentSource ?? webViewUserAgent;
 
   final String endpoint;
   final String publisherKey;
   final HttpClientFactory _clientFactory;
   final math.Random _random;
+  final UserAgentSource _userAgentSource;
+  Future<String?>? _userAgent;
+
+  /// The lookup runs once; a slow or failing one never holds a request back
+  /// for more than [kUserAgentTimeout], and a miss just omits the header.
+  Future<String?> _deviceUserAgent() {
+    return _userAgent ??= _userAgentSource()
+        .timeout(kUserAgentTimeout)
+        .then<String?>((ua) => (ua == null || ua.isEmpty) ? null : ua)
+        .catchError((Object e) {
+      logger.debug('user agent lookup failed: $e');
+      return null;
+    });
+  }
 
   http.Client? _client;
 
@@ -61,6 +81,8 @@ class Transport {
     final headers = _baseHeaders();
     final tc = consentString?.trim();
     if (tc != null && tc.isNotEmpty) headers[kHeaderConsent] = tc;
+    final ua = await _deviceUserAgent();
+    if (ua != null) headers[kHeaderDeviceUserAgent] = ua;
     final uri =
         Uri.parse('$endpoint/v1/serve').replace(queryParameters: params);
 
@@ -166,11 +188,19 @@ class Transport {
 
   /// Fires a one-shot tracking GET. The serve contract may hand back a
   /// path-only URL, which a native HTTP client rejects outright, so it is
-  /// resolved against the configured endpoint before dialling.
+  /// resolved against the configured endpoint before dialling. A bidder's
+  /// pixel on another host gets the device User-Agent, so the SSP sees the UA
+  /// it priced in the bid request.
   Future<void> beacon(String url) async {
     if (url.isEmpty) return;
     try {
-      await _http.get(_absolute(url)).timeout(kTrackTimeout);
+      final target = _absolute(url);
+      Map<String, String>? headers;
+      if (target.host != Uri.parse(endpoint).host) {
+        final ua = await _deviceUserAgent();
+        if (ua != null) headers = {'User-Agent': ua};
+      }
+      await _http.get(target, headers: headers).timeout(kTrackTimeout);
     } catch (e) {
       logger.warn('beacon failed', e);
     }
