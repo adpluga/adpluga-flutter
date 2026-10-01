@@ -48,7 +48,8 @@ class Transport {
     String? format,
     String? userHash,
     bool nonPersonalized = false,
-    List<String>? consentSignals,
+    bool? gdprApplies,
+    String? consentString,
     int refreshSeq = 0,
   }) async {
     final params = <String, String>{'slot': slotId};
@@ -56,18 +57,18 @@ class Transport {
     if (format != null && format.isNotEmpty) params['fmt'] = format;
     if (userHash != null && userHash.isNotEmpty) params['u'] = userHash;
     if (nonPersonalized) params['non_personalized'] = 'true';
-    if (consentSignals != null && consentSignals.isNotEmpty) {
-      params['consent'] = consentSignals.join(',');
-    }
+    if (gdprApplies != null) params['gdpr'] = gdprApplies ? '1' : '0';
+    final headers = _baseHeaders();
+    final tc = consentString?.trim();
+    if (tc != null && tc.isNotEmpty) headers[kHeaderConsent] = tc;
     final uri =
         Uri.parse('$endpoint/v1/serve').replace(queryParameters: params);
 
     Object? lastError;
     for (var attempt = 0; attempt < kRetryMaxAttempts + 1; attempt++) {
       try {
-        final resp = await _http
-            .get(uri, headers: _baseHeaders())
-            .timeout(kServeTimeout);
+        final resp =
+            await _http.get(uri, headers: headers).timeout(kServeTimeout);
         if (resp.statusCode == 426) {
           final minSdk = resp.headers[kHeaderMinSdk.toLowerCase()] ?? '';
           throw UpgradeRequiredError(minSdk);

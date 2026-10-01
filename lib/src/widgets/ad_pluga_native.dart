@@ -7,10 +7,22 @@ import '../viewability/visibility_tracker.dart';
 import 'ad_pluga_banner.dart';
 import 'test_badge.dart';
 
+/// Builds the host app's layout for a native [ad].
+///
+/// Call [onClick] when the user taps the ad; only the first call is reported.
+/// It does not open the advertiser destination.
 typedef AdPlugaNativeBuilder = Widget Function(
     BuildContext context, Ad ad, VoidCallback onClick);
 
+/// Loads an ad for [slotId] and hands it to [builder] to lay out.
+///
+/// The impression and viewability are reported once the widget has been at
+/// least 50% on screen for one second. Unlike [AdPlugaBanner], it neither
+/// rotates nor retries after a failed load.
+///
+/// Requires `AdPluga.initialize` to have been called.
 class AdPlugaNative extends StatefulWidget {
+  /// Creates a native ad slot for [slotId] rendered by [builder].
   const AdPlugaNative({
     super.key,
     required this.slotId,
@@ -21,11 +33,22 @@ class AdPlugaNative extends StatefulWidget {
     this.placeholder,
   });
 
+  /// Slot identifier from the AdPluga dashboard.
   final String slotId;
+
+  /// Creative format requested from the server; any when null.
   final String? format;
+
+  /// Builds the ad layout once an ad is loaded.
   final AdPlugaNativeBuilder builder;
+
+  /// Called after the impression is reported.
   final AdPlugaImpressionHandler? onImpression;
+
+  /// Called when a load fails.
   final AdPlugaErrorHandler? onError;
+
+  /// Shown until an ad is loaded.
   final Widget? placeholder;
 
   @override

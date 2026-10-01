@@ -14,8 +14,12 @@ import 'models/features.dart';
 import 'models/serve_response.dart';
 import 'telemetry/telemetry.dart';
 
+/// Settings the [AdPluga] instance was initialized with.
+///
+/// Built by [AdPluga.initialize] and exposed as [AdPluga.config].
 @immutable
 class AdPlugaConfig {
+  /// Creates a configuration. [endpoint] defaults to [kDefaultEndpoint].
   const AdPlugaConfig({
     required this.publisherKey,
     this.endpoint = kDefaultEndpoint,
@@ -23,14 +27,32 @@ class AdPlugaConfig {
     this.telemetryEnabled = true,
   });
 
+  /// Publisher key, starting with `pk_live_` or `pk_test_`.
   final String publisherKey;
+
+  /// Base URL of the AdPluga API, without a trailing slash once normalized
+  /// by [AdPluga.initialize].
   final String endpoint;
+
+  /// Consent state passed at initialization.
   final ConsentState consent;
+
+  /// Whether SDK telemetry may be sent. The remote `sdk_telemetry` flag can
+  /// still turn it off, but never on when this is false.
   final bool telemetryEnabled;
 }
 
+/// Called once the server answers a serve request with HTTP 426, with the
+/// minimum SDK version it requires.
 typedef UpgradeRequiredHandler = void Function(String minVersion);
 
+/// Entry point of the SDK: a process-wide singleton that requests ads and
+/// reports their events.
+///
+/// Create it with [initialize] and reach it later through [instance]. The ad
+/// widgets (`AdPlugaBanner`, `AdPlugaNative`) and the full-screen formats
+/// (`InterstitialAd`, `RewardedAd`) call [serve] and the `fire*` methods for
+/// you; call them directly only when rendering ads yourself.
 class AdPluga {
   AdPluga._({
     required this.config,
@@ -45,14 +67,20 @@ class AdPluga {
 
   static AdPluga? _instance;
 
+  /// The initialized instance, or null before [initialize] or after
+  /// [destroy].
   static AdPluga? get maybeInstance => _instance;
 
+  /// The initialized instance.
+  ///
+  /// Throws [NotInitializedError] if [initialize] has not completed.
   static AdPluga get instance {
     final s = _instance;
     if (s == null) throw const NotInitializedError();
     return s;
   }
 
+  /// Configuration this instance was initialized with.
   final AdPlugaConfig config;
 
   /// True while running against a sandbox key. Clients use it for the cadence
@@ -70,7 +98,11 @@ class AdPluga {
   String _upgradeMinVersion = '';
   UpgradeRequiredHandler? _onUpgradeRequired;
 
+  /// Broadcast stream of [SdkEvent]s emitted by this instance. Closed by
+  /// [destroy].
   Stream<SdkEvent> get events => _events.stream;
+
+  /// Current consent state, as last set by [initialize] or [setConsent].
   ConsentState get consentState => _consent.state;
 
   /// First-party install id used for frequency capping and first-party
@@ -93,9 +125,24 @@ class AdPluga {
     return buf.toString();
   }
 
+  /// Latest remote feature flags, or [FeaturesView.empty] until the first
+  /// successful fetch.
   FeaturesView get featuresValue => _features.value;
+
+  /// Whether the server has demanded an SDK upgrade. Once true, [serve]
+  /// returns null without making a request.
   bool get isUpgradeBlocked => _upgradeBlocked;
 
+  /// Creates the singleton instance and starts fetching remote features.
+  ///
+  /// [publisherKey] must start with `pk_live_` or `pk_test_`, otherwise an
+  /// [InvalidKeyError] is thrown. [endpoint] defaults to [kDefaultEndpoint];
+  /// trailing slashes are removed. [onUpgradeRequired] is called when the
+  /// server rejects this SDK version.
+  ///
+  /// Calling it again with the same key returns the existing instance; with a
+  /// different key it throws [AlreadyInitializedError]. Call [destroy] first
+  /// to re-initialize.
   static Future<AdPluga> initialize({
     required String publisherKey,
     String? endpoint,
@@ -148,6 +195,17 @@ class AdPluga {
     return ad;
   }
 
+  /// Requests an ad for [slotId].
+  ///
+  /// [format] narrows the requested creative format. [userHash] identifies
+  /// the user for frequency capping and first-party audiences; when omitted,
+  /// an in-memory install id is sent only if [consentState] allows
+  /// personalisation. [refreshSeq] is the rotation count of the slot, 0 for
+  /// the first load.
+  ///
+  /// Returns null instead of throwing when the request fails or an upgrade is
+  /// required; the failure is reported on [events] as an [AdFailedEvent] or
+  /// [UpgradeRequiredSdkEvent].
   Future<ServeResponse?> serve({
     required String slotId,
     String? format,
@@ -162,6 +220,8 @@ class AdPluga {
         format: format,
         userHash: userHash ?? _resolvedUserId(),
         nonPersonalized: !_consent.state.isPersonalized,
+        gdprApplies: _consent.state.gdpr ? true : null,
+        consentString: _consent.state.tcfString,
         refreshSeq: refreshSeq,
       );
       final latency = DateTime.now().difference(start).inMilliseconds;
@@ -189,6 +249,10 @@ class AdPluga {
     }
   }
 
+  /// Reports an impression for [resp], served for [slotId].
+  ///
+  /// Uses [ServeResponse.impressionUrl] when present, otherwise posts the
+  /// track token. Emits an [ImpressionEvent].
   void fireImpression(ServeResponse resp, String slotId) {
     final url = resp.impressionUrl;
     if (url != null && url.isNotEmpty) {
@@ -200,6 +264,10 @@ class AdPluga {
     _emit(ImpressionEvent(slotId: slotId, source: resp.source));
   }
 
+  /// Reports that [resp] met the viewability threshold.
+  ///
+  /// Fires the ad's [Ad.billingUrl] when present (mediation fills) and posts
+  /// the track token to the viewable endpoint when there is one.
   void fireViewable(ServeResponse resp, String slotId) {
     // Mediation fills carry no AdPluga track token: the billable impression is
     // reported to the bidder by firing its burl once. First-party fills report
@@ -213,6 +281,11 @@ class AdPluga {
     }
   }
 
+  /// Reports a click on [resp] through [ServeResponse.clickUrl] and emits a
+  /// [ClickEvent].
+  ///
+  /// The click is dropped, with a warning logged, when the response carries
+  /// no click URL. This does not open the advertiser destination.
   void fireClick(ServeResponse resp, String slotId) {
     // Only click_url carries the click token; track_token is the impression
     // one, so there is no honest fallback — reporting it would bill a click
@@ -247,15 +320,22 @@ class AdPluga {
     await _transport.track(event: 'conversion', token: token, extra: extra);
   }
 
+  /// Replaces the consent state used by later [serve] calls and emits a
+  /// [ConsentChangedEvent].
   void setConsent(ConsentState next) {
     _consent.set(next);
     _emit(ConsentChangedEvent(next));
   }
 
+  /// Fetches remote features, sharing a fetch already in flight. Failures are
+  /// logged, not thrown.
   Future<void> ensureFeatures() => _features.ensure();
 
+  /// Sends any buffered telemetry now.
   Future<void> flushTelemetry() => _telemetry.flush();
 
+  /// Stops background work, closes [events] and releases the singleton so
+  /// [initialize] can be called again.
   Future<void> destroy() async {
     _features.removeListener(_onFeaturesUpdated);
     _features.dispose();
@@ -289,5 +369,7 @@ class AdPluga {
     return v;
   }
 
+  /// Minimum SDK version demanded by the server, or an empty string if no
+  /// upgrade has been required.
   String get upgradeMinVersion => _upgradeMinVersion;
 }

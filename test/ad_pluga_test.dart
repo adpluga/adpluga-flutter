@@ -656,4 +656,54 @@ void main() {
     });
     expect(adLabel(nameless), isNotEmpty);
   });
+
+  // Regression: consent was collected but never sent, so mediation bid
+  // requests left without GDPR applicability or the TCF string.
+  final consentCases =
+      <({String name, ConsentState consent, String? gdpr, String? header})>[
+    (
+      name: 'GDPR applies with a TC string',
+      consent: const ConsentState(
+          gdpr: true,
+          tcfString: 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA'),
+      gdpr: '1',
+      header: 'CPXxRfAPXxRfAAfKABENB-CgAAAAAAAAAAYgAAAAAAAA',
+    ),
+    (
+      name: 'not stated',
+      consent: const ConsentState(),
+      gdpr: null,
+      header: null
+    ),
+    (
+      name: 'blank TC string',
+      consent: const ConsentState(gdpr: true, tcfString: '  '),
+      gdpr: '1',
+      header: null
+    ),
+  ];
+  for (final c in consentCases) {
+    test('serve forwards consent: ${c.name}', () async {
+      http.Request? serveReq;
+      transport_seam.transportClientOverride = () => MockClient((req) async {
+            if (req.url.path == '/v1/serve') {
+              serveReq = req;
+              return http.Response(displayFixture, 200);
+            }
+            if (req.url.path == '/v1/features') {
+              return http.Response(featuresFixture(), 200);
+            }
+            return http.Response('{}', 200);
+          });
+      final ad = await AdPluga.initialize(
+        publisherKey: 'pk_test_abc',
+        consent: c.consent,
+        telemetryEnabled: false,
+      );
+      await ad.serve(slotId: 'slot_x');
+      expect(serveReq, isNotNull);
+      expect(serveReq!.url.queryParameters['gdpr'], c.gdpr);
+      expect(serveReq!.headers['X-Consent-String'], c.header);
+    });
+  }
 }

@@ -9,10 +9,23 @@ import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
 import 'test_badge.dart';
 
+/// A full-screen ad, loaded ahead of time and shown on demand.
+///
+/// Supports image, template, HTML and video creatives. The impression and
+/// viewability are reported on the first frame after [show]; the user closes
+/// it with a close button.
+///
+/// ```dart
+/// final ad = await InterstitialAd.load(slotId: 'your-slot-id');
+/// await ad.show(context);
+/// ```
 class InterstitialAd {
   InterstitialAd._({required this.response, required this.slotId});
 
+  /// The loaded ad.
   final ServeResponse response;
+
+  /// Slot the ad was loaded for.
   final String slotId;
 
   bool _shown = false;
@@ -25,6 +38,12 @@ class InterstitialAd {
     AdKind.video,
   };
 
+  /// Requests an ad for [slotId], optionally restricted to [format].
+  ///
+  /// Throws [NotInitializedError] before `AdPluga.initialize`,
+  /// [NetworkError] when no ad is returned (including after a failed
+  /// request) and [UnsupportedFormatError] when the served kind is not
+  /// supported.
   static Future<InterstitialAd> load({
     required String slotId,
     String? format,
@@ -41,6 +60,10 @@ class InterstitialAd {
     return InterstitialAd._(response: resp, slotId: slotId);
   }
 
+  /// Pushes the ad on the root navigator of [context].
+  ///
+  /// The returned future completes when the user closes the ad. Only the
+  /// first call has an effect; later calls return immediately.
   Future<void> show(BuildContext context) async {
     if (_shown || _dismissed) return;
     _shown = true;

@@ -1,6 +1,7 @@
 const String kSdkPlatform = 'flutter';
-const String kSdkVersion = '0.7.1';
+const String kSdkVersion = '0.7.3';
 
+/// API base URL used when `AdPluga.initialize` is given no endpoint.
 const String kDefaultEndpoint = 'https://edge.adpluga.com';
 
 const Duration kServeTimeout = Duration(milliseconds: 3000);
@@ -37,3 +38,4 @@ const String kHeaderSdkPlatform = 'X-Adpluga-Sdk-Platform';
 const String kHeaderSdkVersion = 'X-Adpluga-Sdk-Version';
 const String kHeaderIfNoneMatch = 'If-None-Match';
 const String kHeaderMinSdk = 'X-Adpluga-Min-Sdk';
+const String kHeaderConsent = 'X-Consent-String';

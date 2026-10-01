@@ -1,0 +1,19 @@
+name: adpluga_flutter_example
+description: A banner and an interstitial with adpluga_flutter, using the public demo key.
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  adpluga_flutter:
+    path: ../
+
+dev_dependencies:
+  lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

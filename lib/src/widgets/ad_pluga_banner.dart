@@ -15,11 +15,35 @@ import 'ad_pluga_html.dart';
 import 'ad_pluga_video.dart';
 import 'test_badge.dart';
 
+/// Called with the error when an ad widget fails to load, including
+/// `NetworkError('no fill')` when the slot gets no ad.
 typedef AdPlugaErrorHandler = void Function(AdPlugaError error);
+
+/// Called after the impression of the shown ad has been reported.
 typedef AdPlugaImpressionHandler = void Function();
+
+/// Called after a click on the shown ad has been reported.
 typedef AdPlugaClickHandler = void Function();
 
+/// Inline ad slot that loads, renders and reports an ad for [slotId].
+///
+/// Renders image, template, HTML, video, audio and carousel creatives; other
+/// kinds show [placeholder]. The impression and viewability are reported once
+/// the slot has been at least 50% on screen for one second. A tap reports one
+/// click per loaded ad and opens the advertiser destination.
+///
+/// When the server sets a rotation cadence, the slot reloads on it, never
+/// faster than 30 seconds (15 seconds for sandbox creatives) and only while
+/// on screen and in the foreground. A failed load is retried with
+/// exponential backoff, capped at five minutes.
+///
+/// Requires `AdPluga.initialize` to have been called.
 class AdPlugaBanner extends StatefulWidget {
+  /// Creates a banner for [slotId].
+  ///
+  /// When both [width] and [height] are given the slot takes that size.
+  /// Otherwise it takes the aspect ratio of the served creative, falling back
+  /// to 320x100 while loading or when the creative has no dimensions.
   const AdPlugaBanner({
     super.key,
     required this.slotId,
@@ -32,13 +56,29 @@ class AdPlugaBanner extends StatefulWidget {
     this.placeholder,
   });
 
+  /// Slot identifier from the AdPluga dashboard.
   final String slotId;
+
+  /// Creative format requested from the server; any when null.
   final String? format;
+
+  /// Slot width in logical pixels.
   final double? width;
+
+  /// Slot height in logical pixels.
   final double? height;
+
+  /// Called after the impression is reported.
   final AdPlugaImpressionHandler? onImpression;
+
+  /// Called after a click is reported.
   final AdPlugaClickHandler? onClick;
+
+  /// Called when a load fails.
   final AdPlugaErrorHandler? onError;
+
+  /// Shown while loading, when no ad is available and when the creative
+  /// cannot be rendered.
   final Widget? placeholder;
 
   @override

@@ -1,5 +1,9 @@
 import 'dart:developer' as developer;
 
+/// Receives SDK log records in place of `dart:developer` logging.
+///
+/// [level] is one of `debug`, `info`, `warn` or `error`; [error] is the
+/// associated error, if any.
 typedef LoggerSink = void Function(String level, String message, Object? error);
 
 class AdPlugaLogger {
@@ -54,10 +58,14 @@ class AdPlugaLogger {
 
 final AdPlugaLogger logger = AdPlugaLogger._();
 
+/// Turns debug, info and warning logs on or off. Errors are always logged.
+/// Logging is off by default.
 void setLoggerEnabled(bool value) {
   logger.enabled = value;
 }
 
+/// Routes SDK logs to [value] instead of `dart:developer`. Pass null to
+/// restore the default.
 void setLoggerSink(LoggerSink? value) {
   logger.sink = value;
 }

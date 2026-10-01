@@ -1,3 +1,16 @@
+/// Flutter SDK for AdPluga: requests ads for a slot from the AdPluga edge,
+/// renders them as banners, native layouts, carousels, HTML, video,
+/// interstitials and rewarded ads, and reports impressions, viewability and
+/// clicks.
+///
+/// Initialize once with a publisher key, then place a widget for each slot:
+///
+/// ```dart
+/// await AdPluga.initialize(publisherKey: 'pk_test_...');
+///
+/// // In a build method:
+/// const AdPlugaBanner(slotId: 'your-slot-id');
+/// ```
 library adpluga_flutter;
 
 export 'src/ad_pluga.dart' show AdPluga, AdPlugaConfig, UpgradeRequiredHandler;

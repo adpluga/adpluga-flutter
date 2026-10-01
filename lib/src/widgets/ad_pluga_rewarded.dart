@@ -8,16 +8,39 @@ import '../models/serve_response.dart';
 import 'ad_pluga_video.dart';
 import 'test_badge.dart';
 
+/// Called when the user earns the reward, with [Ad.rewardAmount] and its
+/// currency (`USD` when the ad carries none).
 typedef RewardHandler = void Function(int amount, String currency);
 
+/// A full-screen ad that grants a reward once watched.
+///
+/// Supports rewarded video, video and image creatives. A video earns the
+/// reward when playback completes and can be closed after that, or earlier
+/// once [Ad.skippableAfterMs] has passed. An image earns it after a countdown
+/// of [Ad.durationMs] (5 seconds when unset, clamped to 1-60 seconds) and can
+/// only be closed then.
+///
+/// ```dart
+/// final ad = await RewardedAd.load(slotId: 'your-slot-id');
+/// await ad.show(context, onReward: (amount, currency) {});
+/// ```
 class RewardedAd {
   RewardedAd._({required this.response, required this.slotId});
 
+  /// The loaded ad.
   final ServeResponse response;
+
+  /// Slot the ad was loaded for.
   final String slotId;
 
   bool _shown = false;
 
+  /// Requests an ad for [slotId]. [format] defaults to `video_rewarded`.
+  ///
+  /// Throws [NotInitializedError] before `AdPluga.initialize`,
+  /// [NetworkError] when no ad is returned (including after a failed
+  /// request) and [UnsupportedFormatError] when the served kind is not
+  /// supported.
   static Future<RewardedAd> load({
     required String slotId,
     String? format,
@@ -34,6 +57,11 @@ class RewardedAd {
     return RewardedAd._(response: resp, slotId: slotId);
   }
 
+  /// Pushes the ad on the root navigator of [context].
+  ///
+  /// [onReward] is called at most once, and only when [Ad.rewardAmount] is
+  /// positive. The returned future completes when the user closes the ad.
+  /// Only the first call has an effect; later calls return immediately.
   Future<void> show(BuildContext context,
       {required RewardHandler onReward}) async {
     if (_shown) return;

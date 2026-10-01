@@ -8,11 +8,25 @@ import '../ad_pluga.dart';
 import '../tracking/quartile_firer.dart';
 import 'test_badge.dart';
 
+/// Called on the first tap on a playing video.
 typedef VideoAdClickHandler = void Function();
+
+/// Called on each player update with the playback position and total
+/// duration, in milliseconds.
 typedef VideoAdProgressHandler = void Function(int positionMs, int durationMs);
+
+/// Called once when playback reaches the end.
 typedef VideoAdCompleteHandler = void Function();
 
+/// Plays a video creative and fires its quartile beacons.
+///
+/// Only http(s) [videoUrl]s are played; otherwise, and while loading, the
+/// widget shows [backgroundColor]. Playback does not loop.
+///
+/// Used by `AdPlugaBanner` and the full-screen formats; it reports no
+/// impressions or clicks to AdPluga itself.
 class AdPlugaVideo extends StatefulWidget {
+  /// Creates a video creative player.
   const AdPlugaVideo({
     super.key,
     required this.videoUrl,
@@ -28,16 +42,39 @@ class AdPlugaVideo extends StatefulWidget {
     this.isTest = false,
   });
 
+  /// URL of the video to play.
   final String videoUrl;
+
+  /// Destination opened on tap when [openClickExternally] is true. Must be
+  /// http(s).
   final String? clickThroughUrl;
+
+  /// Beacon URLs fired as playback crosses `start`, `first_quartile`,
+  /// `midpoint`, `third_quartile` and `complete`.
   final Map<String, String>? quartilePings;
+
+  /// Called on the first tap.
   final VideoAdClickHandler? onClick;
+
+  /// Called on playback progress.
   final VideoAdProgressHandler? onProgress;
+
+  /// Called when playback completes.
   final VideoAdCompleteHandler? onComplete;
+
+  /// Whether to start playing once the video is initialized.
   final bool autoplay;
+
+  /// Whether to play with the volume at zero.
   final bool muted;
+
+  /// Whether a tap opens [clickThroughUrl] in an external application.
   final bool openClickExternally;
+
+  /// Colour behind the video and shown while it is not playable.
   final Color backgroundColor;
+
+  /// Whether to draw the `TEST` badge over the creative.
   final bool isTest;
 
   @override

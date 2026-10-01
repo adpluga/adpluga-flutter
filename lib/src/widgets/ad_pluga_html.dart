@@ -6,9 +6,20 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import 'test_badge.dart';
 
+/// Called when an HTML creative navigates away from its initial page.
 typedef HtmlAdClickHandler = void Function();
 
+/// Renders an HTML creative in a web view with JavaScript enabled.
+///
+/// Loads [html] when non-empty, otherwise [assetUrl] if it is an http(s) URL.
+/// After the first page load, every http(s) navigation is treated as a click:
+/// [onClick] is called and the URL opens in an external application. Other
+/// navigations are blocked.
+///
+/// Used by `AdPlugaBanner` and the full-screen formats; it reports no
+/// impressions or clicks to AdPluga itself.
 class AdPlugaHtml extends StatefulWidget {
+  /// Creates an HTML creative view.
   const AdPlugaHtml({
     super.key,
     this.html,
@@ -19,11 +30,22 @@ class AdPlugaHtml extends StatefulWidget {
     this.isTest = false,
   });
 
+  /// Inline HTML markup.
   final String? html;
+
+  /// Page URL loaded when [html] is empty.
   final String? assetUrl;
+
+  /// Base URL for resolving relative links in [html].
   final String? baseUrl;
+
+  /// Called on each click-through navigation.
   final HtmlAdClickHandler? onClick;
+
+  /// Web view background; transparent when null.
   final Color? backgroundColor;
+
+  /// Whether to draw the `TEST` badge over the creative.
   final bool isTest;
 
   @override

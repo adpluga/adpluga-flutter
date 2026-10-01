@@ -7,7 +7,7 @@ native, interstitial, rewarded, HTML5, and video formats.
 - **Package**: [`adpluga_flutter`](https://pub.dev/packages/adpluga_flutter) on pub.dev
 - **Platforms**: Android, iOS, Web
 - **Dart**: `>=3.0.0 <4.0.0` · **Flutter**: `>=3.10.0`
-- **License**: Proprietary — see [LICENSE](./LICENSE)
+- **License**: Apache-2.0 — see [LICENSE](./LICENSE)
 
 ## Why AdPluga
 

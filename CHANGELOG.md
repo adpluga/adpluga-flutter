@@ -4,6 +4,26 @@ All notable changes to the AdPluga Flutter SDK are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.3] — 2026-10
+
+### Added
+- `example/`: a banner and an interstitial with the public demo key.
+- Documentation on the public API.
+
+### Changed
+- Licensed under the Apache License 2.0. The previous licence pointed to terms
+  at adpluga.com/legal/sdk-license that were never published, so it granted no
+  clear right to use the SDK.
+- `homepage` points to the SDK documentation; pub.dev topics added.
+
+### Fixed
+- The SDK reported itself as 0.7.1 to the server while the package was 0.7.2.
+  The reported version now matches the package, so the minimum-version gate
+  and telemetry see the real one.
+- `ConsentState.gdpr` and `tcfString` were stored but never sent, so mediation
+  bid requests left without them. They now go with every ad request (`gdpr=1`
+  and the `X-Consent-String` header).
+
 ## [0.7.2] — 2026-09
 
 ### Added

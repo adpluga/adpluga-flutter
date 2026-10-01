@@ -17,6 +17,8 @@ const Color _kIndicatorIdle = Color(0x66FFFFFF);
 /// [onInteraction] fires on every swipe so the host can hold off a scheduled
 /// rotation: replacing the deck under the user's finger would lose their place.
 class AdPlugaCarousel extends StatefulWidget {
+  /// Creates a carousel over [slides]. A page indicator is shown when there
+  /// is more than one slide.
   const AdPlugaCarousel({
     super.key,
     required this.slides,
@@ -26,13 +28,20 @@ class AdPlugaCarousel extends StatefulWidget {
     this.isTest = false,
   });
 
+  /// Cards to show, in order. Nothing is rendered when empty.
   final List<Slide> slides;
 
   /// Announced for a slide that carries no copy of its own. The deck shares one
   /// destination, so an unnamed card would be an unnamed link.
   final String fallbackLabel;
+
+  /// Called when any card is tapped.
   final VoidCallback onClick;
+
+  /// Called each time the visible card changes.
   final VoidCallback? onInteraction;
+
+  /// Whether to draw the `TEST` badge over the deck.
   final bool isTest;
 
   @override
