@@ -1,5 +1,6 @@
 import 'package:adpluga_flutter/adpluga_flutter.dart';
 import 'package:adpluga_flutter/src/client/transport.dart';
+import 'package:adpluga_flutter/src/models/serve_response.dart' show adSourceFromString;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -58,5 +59,12 @@ void main() {
     final plain = Ad.fromJson(const {'id': 'h', 'type': 'image'});
     expect(plain.impressionTrackers, isEmpty);
     expect(plain.clickTrackers, isEmpty);
+  });
+
+  // Regression: platform_mediation parsed as unknown, so paid demand looked
+  // like a source this SDK did not recognise.
+  test('platform mediation is paid demand', () {
+    expect(adSourceFromString('platform_mediation'), AdSource.platformMediation);
+    expect(adSourceFromString('nonsense'), AdSource.unknown);
   });
 }

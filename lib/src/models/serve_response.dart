@@ -72,6 +72,9 @@ enum AdSource {
   /// A third-party network reached through mediation.
   mediation,
 
+  /// A network AdPluga sells to on the publisher's behalf; paid demand.
+  platformMediation,
+
   /// A sandbox creative.
   test,
 
@@ -91,6 +94,8 @@ AdSource adSourceFromString(String value) {
       return AdSource.deal;
     case 'mediation':
       return AdSource.mediation;
+    case 'platform_mediation':
+      return AdSource.platformMediation;
     case 'test':
       return AdSource.test;
     default:

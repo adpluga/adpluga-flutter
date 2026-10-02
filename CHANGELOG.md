@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   requests whose UA reads as a server.
 
 ### Fixed
+- `platform_mediation` was read as `unknown`; it is now
+  `AdSource.platformMediation`.
 - A bidder's pixel (burl and trackers) no longer receives the SDK headers;
   it gets the device User-Agent instead.
 
